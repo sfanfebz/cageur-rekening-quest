@@ -231,3 +231,22 @@ export function IconPanah(props: IconProps) {
     </svg>
   );
 }
+
+export function IconMusicNote(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="9" cy="18" r="3" />
+      <path d="M12 18V4l6 2v4" />
+    </svg>
+  );
+}
+
+export function IconMusicNoteOff(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="9" cy="18" r="3" />
+      <path d="M12 18V4l6 2v4" />
+      <line x1="4" y1="4" x2="20" y2="20" />
+    </svg>
+  );
+}

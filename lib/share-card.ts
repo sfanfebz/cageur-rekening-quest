@@ -286,20 +286,23 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   ctx.fillText("QUEST", MARGIN, headerTop + 108);
 
   const pillY = headerTop + 130;
-  ctx.font = `800 19px ${FONT}`;
+  ctx.font = `800 26px ${FONT}`;
   const pillLabel = "🏆 Misi Selesai!";
-  const pillW = ctx.measureText(pillLabel).width + 42;
-  const pillH = 50;
+  const pillW = ctx.measureText(pillLabel).width + 50;
+  const pillH = 60;
+  const pillX = (WIDTH - pillW) / 2; // centered supaya lebih dekat ke maskot, tidak mepet kiri
   ctx.save();
   cardShadow(ctx);
   ctx.fillStyle = "#FFFFFF";
-  roundedRect(ctx, MARGIN, pillY, pillW, pillH, pillH / 2);
+  roundedRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
   ctx.fill();
   clearShadow(ctx);
   ctx.restore();
   ctx.fillStyle = TEAL_DARK;
+  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(pillLabel, MARGIN + 21, pillY + pillH / 2 + 1);
+  ctx.fillText(pillLabel, pillX + pillW / 2, pillY + pillH / 2 + 1);
+  ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
 
   // Kang Cageur — besar, kanan atas, dengan lingkaran glow lembut di belakang

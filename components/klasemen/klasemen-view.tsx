@@ -8,9 +8,11 @@ import { KangCageur } from "@/components/ui/kang-cageur";
 import { IconExport } from "@/components/ui/icons";
 import { COPY } from "@/lib/constants";
 import { formatDate, formatDateTimeFull } from "@/lib/format";
+import { useBackgroundMusic } from "@/lib/music";
 import type { LeaderboardRow } from "@/lib/types";
 
 export function KlasemenView() {
+  useBackgroundMusic("final-result");
   const [unlocked, setUnlocked] = useState(false);
   const [passcode, setPasscode] = useState("");
   const [loading, setLoading] = useState(false);

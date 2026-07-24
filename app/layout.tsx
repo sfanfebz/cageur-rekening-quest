@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import { BudayaKerjaLogo } from "@/components/ui/logo";
 import { MuteToggle } from "@/components/ui/mute-toggle";
+import { MusicMuteToggle } from "@/components/ui/music-mute-toggle";
 import "@/app/globals.css";
 
 const baloo = Baloo_2({
@@ -37,7 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-gray-50 shadow-xl shadow-navy-900/5">
           <header className="sticky top-0 z-30 flex items-center justify-between border-b border-gray-200 bg-white/90 px-4 py-3 backdrop-blur">
             <BudayaKerjaLogo />
-            <MuteToggle />
+            <div className="flex items-center gap-1.5">
+              <MusicMuteToggle />
+              <MuteToggle />
+            </div>
           </header>
           <main className="flex-1 px-4 pb-10 pt-4">{children}</main>
         </div>

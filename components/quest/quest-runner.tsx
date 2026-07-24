@@ -12,6 +12,7 @@ import { BadgePill } from "@/components/ui/badge-pill";
 import { getQuestComponent } from "@/components/quest/registry";
 import { COPY } from "@/lib/constants";
 import { sfx } from "@/lib/sound";
+import { useBackgroundMusic, type MusicState } from "@/lib/music";
 import type { QuestType } from "@/lib/types";
 
 interface QuestRunnerProps {
@@ -40,6 +41,9 @@ export function QuestRunner({ campaignCode, questCode, questType, title, subtitl
   const [pendingAnswer, setPendingAnswer] = useState<unknown>(null);
   const [result, setResult] = useState<ResultData | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const musicState: MusicState = phase === "result" ? "quest-result" : `quest:${questType}`;
+  useBackgroundMusic(musicState);
 
   async function submitAnswer(answer: unknown) {
     setPendingAnswer(answer);
