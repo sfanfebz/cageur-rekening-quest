@@ -66,7 +66,7 @@ export function HiddenObjectGame({ config, onFinish }: QuestGameProps<HiddenObje
     if (isTarget) {
       setFoundIds((prev) => new Set(prev).add(chipId));
       sfx.pop();
-      pushFeedback("NICE!", "success");
+      pushFeedback("NICE!", "nice");
     } else {
       setWrongTaps((w) => w + 1);
       sfx.error();
@@ -98,14 +98,14 @@ export function HiddenObjectGame({ config, onFinish }: QuestGameProps<HiddenObje
               disabled={found}
               className={`relative flex flex-col items-center gap-1.5 rounded-2xl border-2 p-3 text-center text-xs font-bold transition-all ${
                 found
-                  ? "animate-coin-in border-gold-400 bg-gold-100 text-gold-700"
+                  ? "animate-glow-pulse border-green-500 bg-green-50 text-green-700"
                   : wrongFlash === chip.id
                     ? "animate-shake border-red-300 bg-red-50 text-red-500"
                     : `${tone.border} ${tone.bg} ${tone.text} shadow-sm active:scale-95`
               }`}
             >
               {found ? (
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-[10px] shadow">
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 animate-coin-in items-center justify-center rounded-full bg-gold-400 text-[10px] shadow">
                   🪙
                 </span>
               ) : null}

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button, LinkButton } from "@/components/ui/button";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { KangCageur } from "@/components/ui/kang-cageur";
+import { IconExport } from "@/components/ui/icons";
 import { COPY } from "@/lib/constants";
 import { formatDate, formatDateTime } from "@/lib/format";
 import type { LeaderboardRow } from "@/lib/types";
@@ -75,7 +76,7 @@ export function KlasemenView() {
       <div className="flex flex-col items-center gap-6 py-10">
         <KangCageur pose="clipboard" size={110} />
         <Card className="w-full p-5">
-          <h1 className="text-center text-base font-extrabold text-navy-900">{COPY.full.modalTitle}</h1>
+          <h1 className="text-center font-display text-base font-extrabold text-navy-900">🔒 {COPY.full.modalTitle}</h1>
           <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
             <input
               type="password"
@@ -83,7 +84,7 @@ export function KlasemenView() {
               placeholder={COPY.full.passcodePlaceholder}
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
-              className="w-full rounded-2xl border-2 border-navy-100 bg-navy-50/40 px-4 py-3 text-base text-navy-900 outline-none transition focus:border-teal-500 focus:bg-white"
+              className="w-full rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 text-base text-navy-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-50"
             />
             {error ? <ErrorBanner message={error} /> : null}
             <Button type="submit" disabled={loading || !passcode} fullWidth>
@@ -100,18 +101,26 @@ export function KlasemenView() {
 
   return (
     <div className="flex flex-col gap-4 pb-6">
-      <div className="text-center">
-        <h1 className="text-lg font-extrabold text-navy-900">Klasemen Lengkap</h1>
-        <p className="text-sm text-navy-500">{campaignTitle}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-lg font-extrabold text-navy-900">Klasemen Lengkap</h1>
+          <p className="text-sm text-gray-600">{campaignTitle}</p>
+        </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleExportPdf}
+          disabled={exporting || rows.length === 0}
+          className="!border-0 !bg-gold-50 !text-gold-600"
+        >
+          <IconExport size={16} />
+          {exporting ? "Menyiapkan…" : COPY.full.exportPdf}
+        </Button>
       </div>
 
-      <Button variant="secondary" onClick={handleExportPdf} disabled={exporting || rows.length === 0} fullWidth>
-        {exporting ? "Menyiapkan PDF…" : COPY.full.exportPdf}
-      </Button>
-
-      <div className="overflow-x-auto rounded-2xl ring-1 ring-navy-900/5">
+      <div className="overflow-x-auto rounded-2xl ring-1 ring-gray-200">
         <table className="w-full min-w-full text-left text-sm">
-          <thead className="bg-navy-50 text-xs font-bold uppercase text-navy-500">
+          <thead className="bg-gray-50 text-[10px] font-extrabold uppercase text-gray-600">
             <tr>
               <th className="px-3 py-2">#</th>
               <th className="px-3 py-2">Nama</th>
@@ -122,21 +131,21 @@ export function KlasemenView() {
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.rank} className="border-t border-navy-100">
-                <td className="px-3 py-2 font-bold text-navy-700">{row.rank}</td>
-                <td className="px-3 py-2 font-semibold text-navy-800">{row.name}</td>
-                <td className="px-3 py-2 text-navy-700">
+              <tr key={row.rank} className="border-t border-gray-100">
+                <td className="px-3 py-2 font-display font-extrabold text-navy-900">{row.rank}</td>
+                <td className="px-3 py-2 font-bold text-navy-900">{row.name}</td>
+                <td className="px-3 py-2 font-bold text-teal-600">
                   {row.score}/{row.maxScore}
                 </td>
-                <td className="px-3 py-2 text-navy-500">{row.questsCompleted}</td>
-                <td className="px-3 py-2 text-navy-500">{formatDate(row.completedAt)}</td>
+                <td className="px-3 py-2 text-gray-600">{row.questsCompleted}</td>
+                <td className="px-3 py-2 text-gray-600">{formatDate(row.completedAt)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {rows.length === 0 ? <p className="py-6 text-center text-sm text-navy-400">Belum ada peserta yang menyelesaikan campaign ini.</p> : null}
+      {rows.length === 0 ? <p className="py-6 text-center text-sm text-gray-500">Belum ada peserta yang menyelesaikan campaign ini.</p> : null}
 
       <LinkButton href="/hub" variant="ghost" fullWidth>
         {COPY.result.ctaHub}

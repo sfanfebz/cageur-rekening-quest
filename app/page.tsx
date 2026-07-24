@@ -17,16 +17,16 @@ export default async function IdentityPage() {
     <div className="flex flex-col gap-6 pb-6 pt-2">
       <div className="flex flex-col items-center gap-3 text-center">
         <KangCageur pose="clipboard" size={128} />
-        <h1 className="text-2xl font-extrabold text-navy-900">{COPY.identity.title}</h1>
-        <p className="text-base font-semibold text-teal-700">{COPY.identity.subtitle}</p>
-        <p className="text-sm text-navy-500">{COPY.identity.intro}</p>
+        <h1 className="font-display text-[26px] font-extrabold text-navy-900">{COPY.identity.title}</h1>
+        <p className="text-base font-bold text-teal-600">{COPY.identity.subtitle}</p>
+        <p className="text-sm text-gray-600">{COPY.identity.intro}</p>
       </div>
 
       <Card className="p-5">
         <IdentityForm />
       </Card>
 
-      <p className="text-center text-xs text-navy-400">{COPY.privacyNotice}</p>
+      <p className="text-center text-xs text-gray-500">{COPY.privacyNotice}</p>
     </div>
   );
 }

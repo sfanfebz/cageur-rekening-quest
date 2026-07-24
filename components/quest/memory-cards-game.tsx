@@ -82,7 +82,7 @@ export function MemoryCardsGame({ config, onFinish }: QuestGameProps<MemoryCards
               onClick={() => flip(card)}
               className={`flex h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-2 p-1.5 text-center text-[10px] font-bold transition-all ${
                 matchedPairIds.has(card.pairId)
-                  ? "animate-glow-pulse border-teal-400 bg-teal-100 text-teal-700"
+                  ? "animate-glow-pulse border-green-500 bg-green-50 text-green-700"
                   : isFlipped
                     ? `${tone.border} ${tone.bg} ${tone.text}`
                     : "border-navy-600 bg-gradient-to-br from-navy-500 to-navy-700 text-navy-200 active:scale-95"

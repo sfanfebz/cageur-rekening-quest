@@ -4,7 +4,14 @@
 
 html,
 body {
-  background-color: #f4f8f7;
+  background-color: #f7f9f9;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-baloo), var(--font-nunito), sans-serif;
 }
 
 @keyframes confetti-fall {
@@ -28,4 +35,16 @@ body {
 button,
 a {
   touch-action: manipulation;
+}
+
+/* Hormati preferensi reduce motion pemain (bagian animasi #8 pada brief desain) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

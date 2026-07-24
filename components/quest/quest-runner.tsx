@@ -90,11 +90,11 @@ export function QuestRunner({ campaignCode, questCode, questType, title, subtitl
       <div className="relative flex flex-col items-center gap-4 py-8 text-center">
         <Confetti />
         <KangCageur pose="thumbsup" size={120} />
-        <h2 className="text-xl font-extrabold text-navy-900">Quest Selesai!</h2>
-        <p className="text-3xl font-extrabold text-teal-700">
-          {result.score} <span className="text-base font-semibold text-navy-400">/ {result.maxScore}</span>
+        <h2 className="font-display text-xl font-extrabold text-navy-900">Quest Beres! ✅</h2>
+        <p className="animate-pop-in font-display text-4xl font-extrabold text-teal-600">
+          {result.score} <span className="font-sans text-base font-semibold text-gray-500">/ {result.maxScore}</span>
         </p>
-        <p className="text-sm text-navy-500">{percent}% terkumpul dari quest ini</p>
+        <p className="text-sm text-gray-600">{percent}% terkumpul dari quest ini</p>
         {result.badge ? (
           <div className="flex flex-col items-center gap-1.5">
             <p className="text-xs font-bold uppercase tracking-wide text-gold-700">Badge Diperoleh</p>
@@ -114,8 +114,8 @@ export function QuestRunner({ campaignCode, questCode, questType, title, subtitl
     <div className="flex flex-col gap-4">
       <div>
         <p className="text-xs font-bold uppercase tracking-wide text-teal-600">Quest</p>
-        <h1 className="text-xl font-extrabold text-navy-900">{title}</h1>
-        {subtitle ? <p className="text-sm text-navy-500">{subtitle}</p> : null}
+        <h1 className="font-display text-xl font-extrabold text-navy-900">{title}</h1>
+        {subtitle ? <p className="text-sm text-gray-600">{subtitle}</p> : null}
       </div>
       <Card className="p-4">
         <GameComponent config={config as never} maxScore={maxScore} onFinish={submitAnswer} />

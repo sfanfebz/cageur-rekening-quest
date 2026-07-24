@@ -25,7 +25,7 @@ export function TapSelectGame({ config, onFinish }: QuestGameProps<TapSelectConf
     if (healthy) {
       setAnswered((prev) => ({ ...prev, [cardId]: "correct" }));
       sfx.ding();
-      pushFeedback("DING!", "success");
+      pushFeedback("DING!", "ding");
     } else {
       setAnswered((prev) => ({ ...prev, [cardId]: "wrong" }));
       sfx.error();
@@ -56,14 +56,14 @@ export function TapSelectGame({ config, onFinish }: QuestGameProps<TapSelectConf
               disabled={Boolean(state)}
               className={`relative flex flex-col items-center gap-1.5 rounded-2xl border-2 p-3 text-center text-xs font-bold transition-all ${
                 state === "correct"
-                  ? "animate-glow-pulse border-teal-500 bg-teal-100 text-teal-800"
+                  ? "animate-glow-pulse border-green-500 bg-green-50 text-green-700"
                   : state === "wrong"
                     ? "border-red-300 bg-red-50 text-red-500 opacity-60"
                     : `${tone.border} ${tone.bg} ${tone.text} shadow-sm active:scale-95`
               } ${shakingId === card.id ? "animate-shake" : ""}`}
             >
               {state === "correct" ? (
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-[10px] font-black text-white shadow">
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-[10px] font-black text-white shadow">
                   ✓
                 </span>
               ) : null}

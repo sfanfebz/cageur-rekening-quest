@@ -2,7 +2,7 @@ export function ProgressBar({
   current,
   total,
   label,
-  colorClassName = "bg-teal-500",
+  colorClassName = "bg-gradient-to-r from-teal-400 to-teal-500",
 }: {
   current: number;
   total: number;

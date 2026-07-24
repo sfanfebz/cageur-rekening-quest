@@ -1,8 +1,0 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kalender">
-  <rect width="64" height="64" rx="16" fill="#eefbf9"/>
-  <rect x="14" y="16" width="36" height="32" rx="4" fill="none" stroke="#1c3167" stroke-width="3.5"/>
-  <line x1="14" y1="26" x2="50" y2="26" stroke="#1c3167" stroke-width="3.5"/>
-  <line x1="22" y1="12" x2="22" y2="20" stroke="#219a90" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="42" y1="12" x2="42" y2="20" stroke="#219a90" stroke-width="3.5" stroke-linecap="round"/>
-  <rect x="21" y="32" width="6" height="6" rx="1.5" fill="#f7b626"/>
-</svg>

@@ -8,29 +8,30 @@ type Size = "lg" | "md" | "sm";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
-    "bg-teal-600 text-white shadow-lg shadow-teal-900/20 hover:bg-teal-700 active:bg-teal-800 disabled:bg-teal-300",
+    "bg-gradient-to-br from-teal-400 to-teal-500 text-white shadow-button-teal hover:from-teal-500 hover:to-teal-600 active:from-teal-600 active:to-teal-700 disabled:from-gray-200 disabled:to-gray-200 disabled:text-gray-500 disabled:shadow-none",
   secondary:
-    "bg-white text-navy-700 border-2 border-navy-200 hover:border-navy-400 hover:bg-navy-50 disabled:text-navy-300 disabled:border-navy-100",
-  ghost: "bg-transparent text-teal-700 hover:bg-teal-50 disabled:text-teal-200",
-  danger: "bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300",
+    "bg-white text-teal-600 border-2 border-teal-500 hover:bg-teal-50 disabled:text-gray-400 disabled:border-gray-200",
+  ghost: "bg-transparent text-teal-600 hover:bg-teal-50 disabled:text-gray-300",
+  danger: "bg-red-500 text-white hover:bg-red-600 disabled:bg-red-200",
 };
 
 const SIZE_CLASSES: Record<Size, string> = {
-  lg: "text-base px-7 py-4 rounded-3xl",
-  md: "text-sm px-5 py-3 rounded-2xl",
-  sm: "text-xs px-4 py-2 rounded-xl",
+  lg: "text-[15px] px-7 py-4 rounded-full",
+  md: "text-sm px-5 py-3 rounded-full",
+  sm: "text-xs px-4 py-2 rounded-full",
 };
 
 interface CommonProps {
   variant?: Variant;
   size?: Size;
   fullWidth?: boolean;
+  loading?: boolean;
   children: ReactNode;
   className?: string;
 }
 
 type ButtonProps = CommonProps &
-  ButtonHTMLAttributes<HTMLButtonElement> & {
+  Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
     href?: undefined;
   };
 
@@ -39,14 +40,25 @@ interface LinkButtonProps extends CommonProps {
 }
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-bold tracking-wide transition-all duration-150 select-none active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100";
+  "inline-flex items-center justify-center gap-2 font-extrabold tracking-wide transition-all duration-150 select-none active:scale-[0.96] disabled:cursor-not-allowed disabled:active:scale-100";
 
-export function Button({ variant = "primary", size = "lg", fullWidth, children, className = "", ...props }: ButtonProps) {
+function Spinner() {
+  return (
+    <span
+      className="inline-block h-4 w-4 animate-spin rounded-full border-[3px] border-white/40 border-t-white"
+      aria-hidden="true"
+    />
+  );
+}
+
+export function Button({ variant = "primary", size = "lg", fullWidth, loading, children, className = "", disabled, ...props }: ButtonProps) {
   return (
     <button
       className={`${base} ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${fullWidth ? "w-full" : ""} ${className}`}
+      disabled={disabled || loading}
       {...props}
     >
+      {loading ? <Spinner /> : null}
       {children}
     </button>
   );

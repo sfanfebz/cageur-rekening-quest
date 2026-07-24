@@ -87,6 +87,7 @@ export default async function HubPage() {
         description: activeCampaign.description,
       }}
       activeSummary={activeSummary}
+      activeQuestStates={activeQuestStates}
       activeQuestCount={activeQuestStates.filter((q) => q.quest.status === "active").length}
       earnedBadgeTitles={activeQuestStates.filter((q) => q.uiStatus === "completed" && q.badge).map((q) => q.badge!.title)}
       nextQuestTitle={

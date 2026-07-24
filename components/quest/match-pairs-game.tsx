@@ -62,7 +62,7 @@ export function MatchPairsGame({ config, onFinish }: QuestGameProps<MatchPairsCo
                 onClick={() => trySelect("left", item.id)}
                 className={`flex items-center gap-2 rounded-xl border-2 p-2.5 text-left text-xs font-semibold ${
                   matched.has(item.id)
-                    ? "border-teal-400 bg-teal-100 text-teal-700"
+                    ? "border-green-500 bg-green-50 text-green-700"
                     : selectedLeft === item.id
                       ? "border-navy-400 bg-navy-50"
                       : wrongPair?.left === item.id
@@ -87,7 +87,7 @@ export function MatchPairsGame({ config, onFinish }: QuestGameProps<MatchPairsCo
                 onClick={() => trySelect("right", item.id)}
                 className={`rounded-xl border-2 p-2.5 text-left text-xs font-semibold ${
                   matched.has(item.id)
-                    ? "border-teal-400 bg-teal-100 text-teal-700"
+                    ? "border-green-500 bg-green-50 text-green-700"
                     : wrongPair?.right === item.id
                       ? "animate-shake border-red-300 bg-red-50"
                       : `${tone.border} ${tone.bg} ${tone.text}`

@@ -55,10 +55,10 @@ export function ScenarioChoiceGame({ config, onFinish }: QuestGameProps<Scenario
               className={`rounded-2xl border-2 p-3 text-left text-sm font-semibold transition ${
                 showState && isPicked
                   ? option.correct
-                    ? "border-teal-500 bg-teal-100 text-teal-800"
+                    ? "border-green-500 bg-green-50 text-green-700"
                     : "border-red-300 bg-red-50 text-red-600"
                   : showState && option.correct
-                    ? "border-teal-300 bg-teal-50/50 text-teal-700"
+                    ? "border-green-200 bg-green-50/50 text-green-700"
                     : `${tone.border} ${tone.bg} ${tone.text} active:scale-95`
               }`}
             >
@@ -69,8 +69,8 @@ export function ScenarioChoiceGame({ config, onFinish }: QuestGameProps<Scenario
       </div>
 
       {pickedOption ? (
-        <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${pickedOption.correct ? "bg-teal-50 text-teal-700" : "bg-red-50 text-red-600"}`}>
-          {pickedOption.correct ? "NICE! " : "CEK DEUI! "}
+        <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${pickedOption.correct ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+          {pickedOption.correct ? "DING! " : "CEK DEUI! "}
           {pickedOption.feedback ?? ""}
         </div>
       ) : null}

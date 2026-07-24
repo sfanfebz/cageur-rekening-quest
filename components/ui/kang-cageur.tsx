@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export const KANG_CAGEUR_POSES = {
   clipboard: "/kang-cageur-clipboard.svg",
   welcome: "/kang-cageur-welcome.svg",
@@ -14,6 +12,11 @@ export const KANG_CAGEUR_POSES = {
 
 export type KangCageurPose = keyof typeof KANG_CAGEUR_POSES;
 
+/**
+ * Ilustrasi Kang Cageur punya rasio tinggi:lebar berbeda-beda per pose, jadi
+ * dipakai lewat <img> biasa (bukan next/image) dengan tinggi tetap dan lebar
+ * menyesuaikan supaya tidak gepeng/melar.
+ */
 export function KangCageur({
   pose,
   size = 140,
@@ -24,13 +27,13 @@ export function KangCageur({
   className?: string;
 }) {
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src={KANG_CAGEUR_POSES[pose]}
       alt="Kang Cageur"
-      width={size}
       height={size}
+      style={{ height: size, width: "auto" }}
       className={`select-none ${className}`}
-      priority={false}
     />
   );
 }

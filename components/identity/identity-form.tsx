@@ -80,9 +80,9 @@ export function IdentityForm() {
           placeholder={COPY.identity.namePlaceholder}
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="w-full rounded-2xl border-2 border-navy-100 bg-navy-50/40 px-4 py-3 text-base text-navy-900 outline-none transition focus:border-teal-500 focus:bg-white"
+          className="w-full rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 text-base text-navy-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-50"
         />
-        {fieldError.fullName ? <p className="mt-1.5 text-xs font-semibold text-red-600">{fieldError.fullName}</p> : null}
+        {fieldError.fullName ? <p className="mt-1.5 text-xs font-semibold text-red-500">{fieldError.fullName}</p> : null}
       </div>
 
       <div>
@@ -98,22 +98,29 @@ export function IdentityForm() {
           placeholder={COPY.identity.nipPlaceholder}
           value={nip}
           onChange={(e) => setNip(e.target.value.replace(/[^\d]/g, ""))}
-          className="w-full rounded-2xl border-2 border-navy-100 bg-navy-50/40 px-4 py-3 text-base text-navy-900 outline-none transition focus:border-teal-500 focus:bg-white"
+          className="w-full rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 text-base text-navy-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-50"
         />
-        <p className="mt-1.5 text-xs text-navy-400">{COPY.identity.nipHint}</p>
-        {fieldError.nip ? <p className="mt-1.5 text-xs font-semibold text-red-600">{fieldError.nip}</p> : null}
+        <p className="mt-1.5 text-xs text-gray-500">{COPY.identity.nipHint}</p>
+        {fieldError.nip ? <p className="mt-1.5 text-xs font-semibold text-red-500">{fieldError.nip}</p> : null}
       </div>
 
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-navy-600">
-        <input
-          type="checkbox"
-          checked={consent}
-          onChange={(e) => setConsent(e.target.checked)}
-          className="mt-0.5 h-5 w-5 shrink-0 rounded border-2 border-navy-300 text-teal-600 focus:ring-teal-500"
-        />
+      <label className="flex cursor-pointer items-start gap-3 text-sm font-semibold text-navy-900">
+        <span
+          onClick={() => setConsent((prev) => !prev)}
+          className={`mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md border-2 text-white transition ${
+            consent ? "border-teal-500 bg-teal-500" : "border-gray-200 bg-white"
+          }`}
+        >
+          {consent ? (
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12l5 5L19 7" />
+            </svg>
+          ) : null}
+        </span>
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="sr-only" />
         <span>{COPY.identity.consent}</span>
       </label>
-      {fieldError.consent ? <p className="-mt-3 text-xs font-semibold text-red-600">{fieldError.consent}</p> : null}
+      {fieldError.consent ? <p className="-mt-3 text-xs font-semibold text-red-500">{fieldError.consent}</p> : null}
 
       {submitError ? <ErrorBanner message={submitError} /> : null}
 

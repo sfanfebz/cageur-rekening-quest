@@ -1,7 +1,0 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Struk">
-  <rect width="64" height="64" rx="16" fill="#eefbf9"/>
-  <path d="M20 12h24v38l-4-3-4 3-4-3-4 3-4-3-4 3Z" fill="#ffffff" stroke="#1c3167" stroke-width="3"/>
-  <line x1="25" y1="22" x2="39" y2="22" stroke="#1c3167" stroke-width="2.5"/>
-  <line x1="25" y1="29" x2="39" y2="29" stroke="#1c3167" stroke-width="2.5"/>
-  <line x1="25" y1="36" x2="34" y2="36" stroke="#1c3167" stroke-width="2.5"/>
-</svg>

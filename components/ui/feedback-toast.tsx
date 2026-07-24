@@ -3,13 +3,14 @@
 export interface FeedbackItem {
   id: number;
   text: string;
-  tone: "success" | "error" | "info";
+  tone: "ding" | "nice" | "combo" | "error";
 }
 
 const TONE_CLASSES: Record<FeedbackItem["tone"], string> = {
-  success: "bg-teal-600 text-white",
+  ding: "bg-green-500 text-white",
+  nice: "bg-teal-500 text-white",
+  combo: "bg-gold-400 text-navy-900",
   error: "bg-red-500 text-white",
-  info: "bg-gold-400 text-navy-900",
 };
 
 /**

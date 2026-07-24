@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-const COLORS = ["#219a90", "#f7b626", "#33519f", "#72d2c5", "#e89b0c"];
+const COLORS = ["#0F9B8E", "#E8A93A", "#1B2A41", "#2E9E5B", "#12B0A1"];
 
 /** Confetti ringan berbasis CSS (bukan canvas) supaya animasinya tetap enteng. */
 export function Confetti({ count = 24 }: { count?: number }) {

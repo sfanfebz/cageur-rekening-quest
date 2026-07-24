@@ -11,9 +11,9 @@ type Direction = "right" | "up" | "left";
 const SWIPE_THRESHOLD = 70;
 
 const STAMP_STYLE: Record<Direction, string> = {
-  right: "right-3 top-1/2 -translate-y-1/2 rotate-[-8deg] border-teal-500 text-teal-600",
+  right: "right-3 top-1/2 -translate-y-1/2 rotate-[-8deg] border-navy-800 text-navy-800",
   left: "left-3 top-1/2 -translate-y-1/2 rotate-[8deg] border-red-400 text-red-500",
-  up: "top-2 left-1/2 -translate-x-1/2 border-gold-500 text-gold-600",
+  up: "top-2 left-1/2 -translate-x-1/2 border-teal-500 text-teal-600",
 };
 
 export function SwipeCardsGame({ config, onFinish }: QuestGameProps<SwipeCardsConfig>) {
@@ -156,21 +156,21 @@ export function SwipeCardsGame({ config, onFinish }: QuestGameProps<SwipeCardsCo
           onClick={() => decide("left")}
           className="rounded-2xl bg-red-50 py-3 text-xs font-bold text-red-600 active:scale-95"
         >
-          {config.directions.left}
+          ⟵ {config.directions.left}
         </button>
         <button
           type="button"
           onClick={() => decide("up")}
-          className="rounded-2xl bg-gold-50 py-3 text-xs font-bold text-gold-700 active:scale-95"
+          className="rounded-2xl bg-teal-50 py-3 text-xs font-bold text-teal-700 active:scale-95"
         >
-          {config.directions.up}
+          ⟰ {config.directions.up}
         </button>
         <button
           type="button"
           onClick={() => decide("right")}
-          className="rounded-2xl bg-teal-50 py-3 text-xs font-bold text-teal-700 active:scale-95"
+          className="rounded-2xl bg-navy-900 py-3 text-xs font-bold text-white active:scale-95"
         >
-          {config.directions.right}
+          {config.directions.right} ⟶
         </button>
       </div>
     </div>

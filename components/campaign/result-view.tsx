@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { LinkButton, Button } from "@/components/ui/button";
 import { Confetti } from "@/components/ui/confetti";
 import { KangCageur } from "@/components/ui/kang-cageur";
 import { BadgePill } from "@/components/ui/badge-pill";
+import { IconShare } from "@/components/ui/icons";
 import { COPY, resultCategory } from "@/lib/constants";
 import { clampPercent } from "@/lib/format";
 import type { QuestBadge } from "@/lib/types";
@@ -33,6 +33,7 @@ export function ResultView({ participantName, campaignCode, campaignTitle, total
   const [shared, setShared] = useState(false);
   const percent = clampPercent(totalScore, maxScore || 1);
   const category = resultCategory(percent);
+  const badges = questRows.map((row) => row.badge).filter((b): b is QuestBadge => Boolean(b));
 
   async function handleShare() {
     const text = `${participantName} meraih skor ${totalScore}/${maxScore} di ${campaignTitle} — ${category.label} 🎉`;
@@ -52,39 +53,37 @@ export function ResultView({ participantName, campaignCode, campaignTitle, total
   }
 
   return (
-    <div className="relative flex flex-col gap-5 pb-6">
+    <div className="relative flex flex-col items-center gap-4 overflow-hidden pb-6 text-center">
       {!isCampaignArchived ? <Confetti count={30} /> : null}
-      <div className="flex flex-col items-center gap-2 text-center">
-        <KangCageur pose="thumbsup" size={128} />
-        <h1 className="text-xl font-extrabold text-navy-900">{COPY.result.title}</h1>
-        <p className="text-sm font-semibold text-navy-500">{campaignTitle}</p>
-      </div>
+      <h1 className="font-display text-2xl font-extrabold text-navy-900">{COPY.result.title}</h1>
+      <KangCageur pose="thumbsup" size={120} />
 
-      <Card className="flex flex-col items-center gap-2 p-6 text-center">
-        <p className="text-4xl font-extrabold text-teal-700">
-          {totalScore}
-          <span className="text-lg font-semibold text-navy-400"> / {maxScore}</span>
-        </p>
-        <p className="text-lg font-extrabold text-navy-900">{category.label}</p>
-        {rank ? <p className="text-sm text-navy-500">Ranking campaign: #{rank}</p> : null}
-      </Card>
+      <span className="rounded-full bg-gold-50 px-5 py-2.5 text-sm font-extrabold text-gold-600">{category.label}</span>
 
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-bold text-navy-700">Skor per Quest</p>
-        {questRows.map((row) => (
-          <Card key={row.questCode} className="flex items-center justify-between p-3">
-            <div>
-              <p className="text-sm font-semibold text-navy-800">{row.title}</p>
-              {row.badge ? <div className="mt-1"><BadgePill badge={row.badge} /></div> : null}
-            </div>
-            <p className="text-sm font-extrabold text-navy-700">
-              {row.score ?? 0}/{row.maxScore}
-            </p>
-          </Card>
+      <p className="font-display text-4xl font-extrabold text-navy-900">
+        {totalScore} <span className="font-sans text-base font-semibold text-gray-500">/ {maxScore} total poin</span>
+      </p>
+
+      <div className="grid w-full grid-cols-4 gap-1.5">
+        {questRows.map((row, index) => (
+          <div key={row.questCode} className="rounded-xl bg-white p-2 shadow-e1">
+            <p className="font-display text-sm font-extrabold text-navy-900">{row.score ?? 0}</p>
+            <p className="text-[9px] font-bold text-gray-500">Q{index + 1}</p>
+          </div>
         ))}
       </div>
 
-      <div className="flex flex-col gap-2">
+      {rank ? <p className="text-sm font-bold text-navy-900">Ranking: #{rank}</p> : null}
+
+      {badges.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {badges.map((badge) => (
+            <BadgePill key={badge.code} badge={badge} />
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-2 flex w-full flex-col gap-2">
         <LinkButton href={`/campaign/${campaignCode}/leaderboard`} fullWidth>
           {COPY.result.ctaLeaderboard}
         </LinkButton>
@@ -92,11 +91,12 @@ export function ResultView({ participantName, campaignCode, campaignTitle, total
           {COPY.result.ctaHub}
         </LinkButton>
         <Button variant="ghost" onClick={handleShare} fullWidth>
+          <IconShare size={16} />
           {shared ? "Tersalin!" : COPY.result.ctaShare}
         </Button>
       </div>
 
-      <p className="text-center text-sm font-semibold text-teal-700">{COPY.closingMessage}</p>
+      <p className="text-sm font-bold text-teal-600">{COPY.closingMessage}</p>
     </div>
   );
 }

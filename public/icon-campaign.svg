@@ -1,5 +1,0 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Campaign">
-  <rect width="64" height="64" rx="16" fill="#fffaeb"/>
-  <line x1="20" y1="50" x2="20" y2="14" stroke="#1c3167" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M20 16h26l-6 8 6 8H20Z" fill="#f7b626"/>
-</svg>

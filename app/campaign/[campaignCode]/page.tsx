@@ -26,8 +26,8 @@ export default async function CampaignIntroPage({ params }: { params: Promise<{ 
     <div className="flex flex-col gap-5 pb-6">
       <div className="flex flex-col items-center gap-2 text-center">
         <KangCageur pose="map" size={112} />
-        <h1 className="text-xl font-extrabold text-navy-900">{campaign.title}</h1>
-        {campaign.description ? <p className="text-sm text-navy-500">{campaign.description}</p> : null}
+        <h1 className="font-display text-2xl font-extrabold text-navy-900">{campaign.title}</h1>
+        {campaign.description ? <p className="text-sm text-gray-600">{campaign.description}</p> : null}
       </div>
 
       <ProgressBar
@@ -44,7 +44,7 @@ export default async function CampaignIntroPage({ params }: { params: Promise<{ 
           ))}
       </div>
 
-      <p className="text-center text-xs text-navy-400">{COPY.privacyNotice}</p>
+      <p className="text-center text-xs text-gray-500">{COPY.privacyNotice}</p>
     </div>
   );
 }

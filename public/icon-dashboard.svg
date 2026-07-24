@@ -1,6 +1,0 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dashboard budget">
-  <rect width="64" height="64" rx="16" fill="#eefbf9"/>
-  <path d="M16 40a16 16 0 0 1 32 0" fill="none" stroke="#1c3167" stroke-width="3.5"/>
-  <line x1="32" y1="40" x2="40" y2="28" stroke="#219a90" stroke-width="3.5" stroke-linecap="round"/>
-  <circle cx="32" cy="40" r="2.6" fill="#1c3167"/>
-</svg>

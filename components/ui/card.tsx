@@ -7,7 +7,7 @@ export function Card({
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
     <div
-      className={`rounded-3xl bg-white shadow-sm shadow-navy-900/5 ring-1 ring-navy-900/5 ${className}`}
+      className={`rounded-3xl bg-white shadow-e1 ring-1 ring-gray-200 ${className}`}
       {...props}
     >
       {children}

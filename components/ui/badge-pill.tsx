@@ -6,7 +6,7 @@ export function BadgePill({ badge }: { badge: QuestBadge }) {
       <span className="relative flex h-8 w-8 shrink-0 items-center justify-center">
         <span className="absolute -bottom-0.5 left-1.5 h-3.5 w-2 -rotate-[18deg] rounded-sm bg-red-500" aria-hidden="true" />
         <span className="absolute -bottom-0.5 right-1.5 h-3.5 w-2 rotate-[18deg] rounded-sm bg-red-600" aria-hidden="true" />
-        <span className="relative flex h-7 w-7 animate-badge-shine items-center justify-center rounded-full bg-gradient-to-br from-gold-200 via-gold-400 to-gold-600 text-[13px] shadow ring-2 ring-white">
+        <span className="relative flex h-7 w-7 animate-badge-shine items-center justify-center rounded-full bg-gradient-to-br from-gold-200 to-gold-400 text-[13px] shadow-badge-gold ring-2 ring-white">
           🏅
         </span>
       </span>
