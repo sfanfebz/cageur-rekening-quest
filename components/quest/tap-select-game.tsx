@@ -35,7 +35,9 @@ export function TapSelectGame({ config, onFinish }: QuestGameProps<TapSelectConf
   }
 
   const answeredCount = Object.keys(answered).length;
-  const allAnswered = answeredCount === config.cards.length;
+  const healthyIds = config.cards.filter((c) => c.healthy).map((c) => c.id);
+  const correctFound = healthyIds.filter((id) => answered[id] === "correct").length;
+  const allHealthyFound = correctFound === healthyIds.length;
 
   return (
     <div className="relative flex flex-col gap-4">
@@ -64,8 +66,10 @@ export function TapSelectGame({ config, onFinish }: QuestGameProps<TapSelectConf
           );
         })}
       </div>
-      <p className="text-center text-xs text-navy-400">{answeredCount}/{config.cards.length} kartu di-cek</p>
-      <Button disabled={!allAnswered} onClick={() => onFinish({ selectedIds: Object.keys(answered) })} fullWidth>
+      <p className="text-center text-xs text-navy-400">
+        {correctFound}/{healthyIds.length} kebiasaan sehat ditemukan · {answeredCount}/{config.cards.length} kartu di-cek
+      </p>
+      <Button disabled={!allHealthyFound} onClick={() => onFinish({ selectedIds: Object.keys(answered) })} fullWidth>
         Selesai
       </Button>
     </div>
