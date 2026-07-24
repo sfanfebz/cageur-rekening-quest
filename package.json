@@ -2,7 +2,7 @@
   "name": "cageur-rekening-quest",
   "version": "0.1.0",
   "private": true,
-  "scripts": { "dev": "next dev", "build": "next build", "start": "next start", "lint": "tsc --noEmit" },
-  "dependencies": { "next": "15.5.7", "react": "19.0.0", "react-dom": "19.0.0", "zod": "3.24.3" },
+  "scripts": { "dev": "node server.mjs", "start": "node server.mjs", "build": "node --check server.mjs && node --check public/game.js", "lint": "node --check server.mjs && node --check public/game.js" },
+  "dependencies": { "next": "15.3.0", "react": "19.0.0", "react-dom": "19.0.0", "zod": "3.24.3" },
   "devDependencies": { "@types/node": "22.15.2", "@types/react": "19.0.0", "typescript": "5.8.3" }
 }
