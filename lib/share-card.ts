@@ -399,9 +399,9 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   clearShadow(ctx);
   ctx.restore();
   ctx.fillStyle = NAVY;
-  ctx.font = `800 25px ${FONT}`;
+  ctx.font = `800 32px ${FONT}`;
   ctx.textAlign = "center";
-  wrapCentered(ctx, data.categoryLabel, ribbonX + ribbonW / 2, scoreY + scoreH / 2, ribbonW - 32, 30, 3);
+  wrapCentered(ctx, data.categoryLabel, ribbonX + ribbonW / 2, scoreY + scoreH / 2, ribbonW - 28, 36, 3);
   ctx.textAlign = "left";
 
   // ---------------------------------------------------------------------
@@ -425,18 +425,18 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   ctx.lineTo(midX, questY + questH - 24);
   ctx.stroke();
 
-  drawIconCircle(ctx, MARGIN + 56, questY + 72, 30, "#E3F5F3", "✅", 26);
+  drawIconCircle(ctx, MARGIN + 56, questY + 76, 30, "#E3F5F3", "✅", 26);
   ctx.fillStyle = NAVY;
-  ctx.font = `800 36px ${FONT}`;
-  ctx.fillText(`${data.questCount}`, MARGIN + 108, questY + 64);
-  ctx.font = `700 19px ${FONT}`;
+  ctx.font = `800 44px ${FONT}`;
+  ctx.fillText(`${data.questCount}`, MARGIN + 108, questY + 70);
+  ctx.font = `800 22px ${FONT}`;
   ctx.fillStyle = GRAY;
-  wrapText(ctx, "quest diselesaikan", MARGIN + 108, questY + 100, midX - (MARGIN + 108) - 16, 25, 2);
+  wrapText(ctx, "quest diselesaikan", MARGIN + 108, questY + 104, midX - (MARGIN + 108) - 16, 27, 2);
 
   drawIconCircle(ctx, midX + 56, questY + 72, 30, "#FCF1DE", "🎯", 26);
   ctx.fillStyle = NAVY;
-  ctx.font = `700 19px ${FONT}`;
-  wrapText(ctx, motivationalText(percent), midX + 108, questY + 60, MARGIN + fullW - (midX + 108) - 14, 26, 3);
+  ctx.font = `700 22px ${FONT}`;
+  wrapText(ctx, motivationalText(percent), midX + 108, questY + 62, MARGIN + fullW - (midX + 108) - 14, 28, 3);
 
   // ---------------------------------------------------------------------
   // Label badge (dengan garis pendamping kiri-kanan) + baris badge,
