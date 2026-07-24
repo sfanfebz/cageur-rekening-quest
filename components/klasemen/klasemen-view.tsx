@@ -56,11 +56,11 @@ export function KlasemenView() {
       doc.setFontSize(10);
       doc.text(`Diekspor pada ${formatDateTime(new Date())}`, 14, 22);
 
-      // Hanya Ranking, Nama, Skor yang masuk PDF -- tanpa NIP (bagian 20B.3 & 30).
+      // Ranking, Nama, Skor, dan Waktu Selesai -- tanpa NIP (bagian 20B.3 & 30).
       (doc as unknown as { autoTable: (opts: Record<string, unknown>) => void }).autoTable({
         startY: 28,
-        head: [["Ranking", "Nama", "Skor"]],
-        body: rows.map((row) => [`#${row.rank}`, row.name, `${row.score}/${row.maxScore}`]),
+        head: [["Ranking", "Nama", "Skor", "Waktu Selesai"]],
+        body: rows.map((row) => [`#${row.rank}`, row.name, `${row.score}/${row.maxScore}`, formatDateTime(row.completedAt)]),
         styles: { fontSize: 10 },
         headStyles: { fillColor: [20, 99, 96] },
       });

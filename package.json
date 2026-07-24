@@ -16,10 +16,12 @@
     "@supabase/supabase-js": "2.49.4",
     "jspdf": "2.5.2",
     "jspdf-autotable": "3.8.4",
+    "qrcode": "1.5.4",
     "server-only": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "22.15.2",
+    "@types/qrcode": "1.5.5",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "typescript": "5.8.3",

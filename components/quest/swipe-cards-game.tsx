@@ -113,6 +113,7 @@ export function SwipeCardsGame({ config, onFinish }: QuestGameProps<SwipeCardsCo
       <div className="relative flex h-40 items-center justify-center">
         {nextItem ? (
           <div
+            key={nextItem.id}
             style={{
               transform: `scale(${0.88 + 0.12 * revealProgress})`,
               opacity: 0.5 + 0.5 * revealProgress,
@@ -126,6 +127,7 @@ export function SwipeCardsGame({ config, onFinish }: QuestGameProps<SwipeCardsCo
         ) : null}
 
         <div
+          key={currentItem.id}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}

@@ -1,3 +1,5 @@
+export const APP_URL = "https://cageur-rekening.vercel.app";
+
 export const COPY = {
   appTitle: "CAGEUR REKENING QUEST",
   identity: {

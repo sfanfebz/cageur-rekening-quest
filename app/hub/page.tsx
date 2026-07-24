@@ -95,6 +95,11 @@ export default async function HubPage() {
         activeQuestStates.find((q) => q.uiStatus === "available")?.quest.title ??
         null
       }
+      nextQuestCode={
+        activeQuestStates.find((q) => q.uiStatus === "started")?.quest.questCode ??
+        activeQuestStates.find((q) => q.uiStatus === "available")?.quest.questCode ??
+        null
+      }
       rankInfo={rankInfo}
       showNewCampaignBanner={showNewCampaignBanner}
       transitionCampaignTitle={transitionCampaign?.title ?? null}

@@ -6,8 +6,9 @@ import { Confetti } from "@/components/ui/confetti";
 import { KangCageur } from "@/components/ui/kang-cageur";
 import { BadgePill } from "@/components/ui/badge-pill";
 import { IconShare } from "@/components/ui/icons";
-import { COPY, resultCategory } from "@/lib/constants";
+import { COPY, resultCategory, APP_URL } from "@/lib/constants";
 import { clampPercent } from "@/lib/format";
+import { generateShareCardBlob } from "@/lib/share-card";
 import type { QuestBadge } from "@/lib/types";
 
 export interface ResultQuestRow {
@@ -30,25 +31,58 @@ interface ResultViewProps {
 }
 
 export function ResultView({ participantName, campaignCode, campaignTitle, totalScore, maxScore, rank, questRows, isCampaignArchived }: ResultViewProps) {
-  const [shared, setShared] = useState(false);
+  const [shareStatus, setShareStatus] = useState<"idle" | "sharing" | "done">("idle");
   const percent = clampPercent(totalScore, maxScore || 1);
   const category = resultCategory(percent);
   const badges = questRows.map((row) => row.badge).filter((b): b is QuestBadge => Boolean(b));
 
   async function handleShare() {
-    const text = `${participantName} meraih skor ${totalScore}/${maxScore} di ${campaignTitle} — ${category.label} 🎉`;
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ title: COPY.appTitle, text });
-        return;
-      } catch {
-        // pengguna membatalkan share sheet, lanjut ke fallback salin teks
+    setShareStatus("sharing");
+    const text = `Saya berhasil mendapatkan skor ${totalScore} pada campaign ${campaignTitle} di Cageur Rekening Quest. Yuk ikutan main di ${APP_URL}`;
+
+    try {
+      const blob = await generateShareCardBlob({
+        campaignTitle,
+        participantName,
+        score: totalScore,
+        maxScore,
+        questCount: questRows.length,
+        badgeTitles: badges.map((b) => b.title),
+        rank,
+        categoryLabel: category.label,
+      });
+      const file = new File([blob], "hasil-cageur-rekening-quest.png", { type: "image/png" });
+
+      if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ title: COPY.appTitle, text, files: [file] });
+          setShareStatus("idle");
+          return;
+        } catch (err) {
+          if ((err as Error)?.name === "AbortError") {
+            setShareStatus("idle");
+            return;
+          }
+          // gagal share native, lanjut ke fallback unduh di bawah
+        }
       }
-    }
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      await navigator.clipboard.writeText(text).catch(() => {});
-      setShared(true);
-      setTimeout(() => setShared(false), 2000);
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "hasil-cageur-rekening-quest.png";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(text).catch(() => {});
+      }
+      setShareStatus("done");
+      setTimeout(() => setShareStatus("idle"), 2500);
+    } catch {
+      setShareStatus("idle");
     }
   }
 
@@ -90,9 +124,9 @@ export function ResultView({ participantName, campaignCode, campaignTitle, total
         <LinkButton href="/hub" variant="secondary" fullWidth>
           {COPY.result.ctaHub}
         </LinkButton>
-        <Button variant="ghost" onClick={handleShare} fullWidth>
-          <IconShare size={16} />
-          {shared ? "Tersalin!" : COPY.result.ctaShare}
+        <Button variant="ghost" onClick={handleShare} loading={shareStatus === "sharing"} fullWidth>
+          {shareStatus !== "sharing" ? <IconShare size={16} /> : null}
+          {shareStatus === "sharing" ? "Menyiapkan kartu…" : shareStatus === "done" ? "Gambar diunduh!" : COPY.result.ctaShare}
         </Button>
       </div>
 

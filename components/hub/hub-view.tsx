@@ -33,6 +33,7 @@ interface HubViewProps {
   activeQuestCount: number;
   earnedBadgeTitles: string[];
   nextQuestTitle: string | null;
+  nextQuestCode: string | null;
   rankInfo: number | null;
   showNewCampaignBanner: boolean;
   transitionCampaignTitle: string | null;
@@ -58,6 +59,7 @@ export function HubView(props: HubViewProps) {
     activeQuestCount,
     earnedBadgeTitles,
     nextQuestTitle,
+    nextQuestCode,
     rankInfo,
     showNewCampaignBanner,
     transitionCampaignTitle,
@@ -67,7 +69,11 @@ export function HubView(props: HubViewProps) {
 
   const [tab, setTab] = useState<TabKey>("current");
   const ctaHref =
-    activeSummary.status === "completed" ? `/campaign/${activeCampaign.campaignCode}/result` : `/campaign/${activeCampaign.campaignCode}`;
+    activeSummary.status === "completed"
+      ? `/campaign/${activeCampaign.campaignCode}/result`
+      : nextQuestCode
+        ? `/campaign/${activeCampaign.campaignCode}/quest/${nextQuestCode}`
+        : `/campaign/${activeCampaign.campaignCode}`;
 
   return (
     <div className="flex flex-col gap-5 pb-6">
@@ -156,7 +162,7 @@ export function HubView(props: HubViewProps) {
               </p>
             ) : null}
 
-            <LinkButton href={ctaHref} className="mt-4 !bg-white !text-teal-600 hover:!bg-teal-50" fullWidth>
+            <LinkButton href={ctaHref} className="mt-4 !bg-none !bg-white !text-teal-600 !shadow-none hover:!bg-teal-50" fullWidth>
               {mainCta(activeSummary.status, showNewCampaignBanner)}
             </LinkButton>
           </div>
