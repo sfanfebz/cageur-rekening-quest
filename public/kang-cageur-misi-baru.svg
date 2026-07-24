@@ -1,0 +1,20 @@
+<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kang Cageur membawa papan Misi Baru">
+  <defs>
+    <linearGradient id="bg9" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#219a90"/>
+      <stop offset="1" stop-color="#1c3167"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="240" rx="36" fill="url(#bg9)"/>
+  <path d="M62 216 C58 156 78 126 120 126 C162 126 182 156 178 216 Z" fill="#ffffff"/>
+  <path d="M104 130 L120 150 L136 130" fill="none" stroke="#146360" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="120" cy="92" r="46" fill="#f2c39a"/>
+  <path d="M70 78 Q120 40 170 78 L164 96 Q120 66 76 96 Z" fill="#1c3167"/>
+  <circle cx="150" cy="70" r="5" fill="#f7b626"/>
+  <circle cx="104" cy="96" r="5" fill="#162650"/>
+  <circle cx="136" cy="96" r="5" fill="#162650"/>
+  <path d="M104 114 Q120 126 136 114" fill="none" stroke="#162650" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="188" cy="188" r="30" fill="#ffffff"/>
+  <line x1="176" y1="204" x2="176" y2="172" stroke="#146360" stroke-width="3" stroke-linecap="round"/>
+  <path d="M176 174 h24 l-6 8 l6 8 h-24 Z" fill="#f7b626"/>
+</svg>

@@ -2,7 +2,29 @@
   "name": "cageur-rekening-quest",
   "version": "0.1.0",
   "private": true,
-  "scripts": { "dev": "next dev", "build": "next build", "start": "next start", "lint": "tsc --noEmit" },
-  "dependencies": { "next": "15.5.9", "react": "19.0.0", "react-dom": "19.0.0", "zod": "3.24.3" },
-  "devDependencies": { "@types/node": "22.15.2", "@types/react": "19.0.0", "typescript": "5.8.3" }
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "15.5.9",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "zod": "3.24.3",
+    "@supabase/supabase-js": "2.49.4",
+    "jspdf": "2.5.2",
+    "jspdf-autotable": "3.8.4",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.2",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "typescript": "5.8.3",
+    "tailwindcss": "3.4.14",
+    "postcss": "8.4.47",
+    "autoprefixer": "10.4.20"
+  }
 }

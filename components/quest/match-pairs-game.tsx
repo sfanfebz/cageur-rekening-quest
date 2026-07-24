@@ -1,0 +1,97 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { sfx } from "@/lib/sound";
+import type { MatchPairsConfig } from "@/lib/quest-config-schemas";
+import type { QuestGameProps } from "@/components/quest/types";
+
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+export function MatchPairsGame({ config, onFinish }: QuestGameProps<MatchPairsConfig>) {
+  const leftItems = useMemo(() => shuffle(config.pairs.map((p) => ({ id: p.id, label: p.left }))), [config]);
+  const rightItems = useMemo(() => shuffle(config.pairs.map((p) => ({ id: p.id, label: p.right }))), [config]);
+  const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+  const [wrongPair, setWrongPair] = useState<{ left: string; right: string } | null>(null);
+  const [matched, setMatched] = useState<Set<string>>(new Set());
+
+  function trySelect(side: "left" | "right", id: string) {
+    if (matched.has(id)) return;
+    if (side === "left") {
+      setSelectedLeft(id);
+      return;
+    }
+    if (!selectedLeft) return;
+    if (selectedLeft === id) {
+      const next = new Set(matched).add(id);
+      setMatched(next);
+      setSelectedLeft(null);
+      sfx.ding();
+      if (next.size === config.pairs.length) onFinish({ matchedPairIds: Array.from(next) });
+    } else {
+      setWrongPair({ left: selectedLeft, right: id });
+      sfx.error();
+      setTimeout(() => setWrongPair(null), 400);
+      setSelectedLeft(null);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-navy-600">{config.instruction}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-2">
+          {leftItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              disabled={matched.has(item.id)}
+              onClick={() => trySelect("left", item.id)}
+              className={`rounded-xl border-2 p-2.5 text-left text-xs font-semibold ${
+                matched.has(item.id)
+                  ? "border-teal-400 bg-teal-50 text-teal-700"
+                  : selectedLeft === item.id
+                    ? "border-navy-400 bg-navy-50"
+                    : wrongPair?.left === item.id
+                      ? "animate-shake border-red-300 bg-red-50"
+                      : "border-navy-100 bg-white"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-col gap-2">
+          {rightItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              disabled={matched.has(item.id)}
+              onClick={() => trySelect("right", item.id)}
+              className={`rounded-xl border-2 p-2.5 text-left text-xs font-semibold ${
+                matched.has(item.id)
+                  ? "border-teal-400 bg-teal-50 text-teal-700"
+                  : wrongPair?.right === item.id
+                    ? "animate-shake border-red-300 bg-red-50"
+                    : "border-navy-100 bg-white"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className="text-center text-xs text-navy-400">{matched.size}/{config.pairs.length} pasangan cocok</p>
+      <Button disabled={matched.size !== config.pairs.length} onClick={() => onFinish({ matchedPairIds: Array.from(matched) })} fullWidth>
+        Selesai
+      </Button>
+    </div>
+  );
+}

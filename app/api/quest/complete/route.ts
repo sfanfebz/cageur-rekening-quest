@@ -1,24 +1,74 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { activeCampaign, campaignQuests, scoreQuest } from "../../../../lib/game-server";
-import { db } from "../../../../lib/supabase";
+import { questCompleteSchema } from "@/lib/validators";
+import { getParticipantIdFromSession } from "@/lib/session";
+import {
+  getCampaignByCode,
+  getCampaignQuestsWithState,
+  getQuestByCode,
+  recomputeAndSaveCampaignProgress,
+  saveQuestCompletion,
+} from "@/lib/data";
+import { validateQuestConfig, isKnownQuestType } from "@/lib/quest-config-schemas";
+import { scoreQuestAnswer } from "@/lib/scoring";
+import { COPY } from "@/lib/constants";
 
 export async function POST(request: Request) {
+  const participantId = await getParticipantIdFromSession();
+  if (!participantId) {
+    return NextResponse.json({ ok: false, message: COPY.errors.validation }, { status: 401 });
+  }
+
+  const parsed = questCompleteSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, message: COPY.errors.validation }, { status: 400 });
+  }
+
   try {
-    const { participantId, campaignId, questId, answer } = await request.json(); const participantCookie = (await cookies()).get("cageur_participant")?.value;
-    if (!participantCookie || participantCookie !== participantId) return NextResponse.json({ error: "Sesi pemain tidak valid. Masuk lagi, ya." }, { status: 401 });
-    const campaign = await activeCampaign();
-    if (!campaign || campaign.id !== campaignId) return NextResponse.json({ error: "Misi ini geus kelar waktuna, tapi aya misi baru keur kamu!" }, { status: 409 });
-    const { links, quests } = await campaignQuests(campaign.id); const quest = quests.find((item) => item.id === questId); const linkIndex = links.findIndex((item) => item.quest_id === questId);
-    if (!quest || quest.status !== "active" || linkIndex < 0) return NextResponse.json({ error: "Quest tidak tersedia." }, { status: 404 });
-    const existing = await db<{ status: string }[]>(`participant_quest_progress?participant_id=eq.${participantId}&campaign_id=eq.${campaign.id}&quest_id=eq.${quest.id}&quest_version=eq.${quest.version}&select=status`);
-    if (existing[0]?.status === "completed" && !quest.allow_replay) return NextResponse.json({ error: "Quest ini sudah selesai dan skornya terkunci." }, { status: 409 });
-    const priorRequired = links.slice(0, linkIndex).filter((link) => link.unlock_rule === "sequential" && link.is_required).map((link) => link.quest_id);
-    if (priorRequired.length) { const completed = await db<{ quest_id: string }[]>(`participant_quest_progress?participant_id=eq.${participantId}&campaign_id=eq.${campaign.id}&status=eq.completed&select=quest_id`); if (priorRequired.some((id) => !completed.some((item) => item.quest_id === id))) return NextResponse.json({ error: "Selesaikan misi sebelumnya dulu, ya." }, { status: 409 }); }
-    const score = scoreQuest(quest, answer); const now = new Date().toISOString();
-    await db("participant_quest_progress?on_conflict=participant_id,campaign_id,quest_id,quest_version", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=representation" }, body: JSON.stringify({ participant_id: participantId, campaign_id: campaign.id, quest_id: quest.id, quest_version: quest.version, status: "completed", score, max_score: quest.max_score, answer_data_json: answer, started_at: now, completed_at: now }) });
-    const all = await db<{ quest_id: string; score: number }[]>(`participant_quest_progress?participant_id=eq.${participantId}&campaign_id=eq.${campaign.id}&status=eq.completed&select=quest_id,score`); const required = links.filter((link) => link.is_required && quests.some((quest) => quest.id === link.quest_id && quest.status === "active")); const complete = required.every((link) => all.some((entry) => entry.quest_id === link.quest_id));
-    await db("participant_campaign_progress?on_conflict=participant_id,campaign_id", { method: "POST", headers: { Prefer: "resolution=merge-duplicates" }, body: JSON.stringify({ participant_id: participantId, campaign_id: campaign.id, status: complete ? "completed" : "started", completed_quest_count: all.length, total_score: all.reduce((sum, item) => sum + item.score, 0), max_score: quests.filter((quest) => required.some((link) => link.quest_id === quest.id)).reduce((sum, quest) => sum + quest.max_score, 0), started_at: now, completed_at: complete ? now : null }) });
-    return NextResponse.json({ score, completed: complete });
-  } catch (error) { console.error(error); return NextResponse.json({ error: "Aduh, progres belum berhasil disimpan. Coba lagi, ya." }, { status: 500 }); }
+    const campaign = await getCampaignByCode(parsed.data.campaignCode);
+    if (!campaign || campaign.status !== "active") {
+      return NextResponse.json({ ok: false, message: COPY.errors.noActiveCampaign }, { status: 409 });
+    }
+
+    const quest = await getQuestByCode(parsed.data.questCode);
+    if (!quest || quest.status !== "active" || !isKnownQuestType(quest.questType)) {
+      return NextResponse.json({ ok: false, message: COPY.errors.generic }, { status: 404 });
+    }
+
+    const questStates = await getCampaignQuestsWithState(campaign, participantId);
+    const state = questStates.find((q) => q.quest.id === quest.id);
+    if (!state || (state.uiStatus !== "available" && state.uiStatus !== "started")) {
+      if (state?.uiStatus === "completed") {
+        return NextResponse.json({
+          ok: true,
+          alreadyCompleted: true,
+          score: state.progress?.score ?? 0,
+          maxScore: quest.maxScore,
+        });
+      }
+      return NextResponse.json({ ok: false, message: "Misi ini belum bisa diselesaikan." }, { status: 403 });
+    }
+
+    const configResult = validateQuestConfig(quest.questType, quest.configJson);
+    if (!configResult.success) {
+      return NextResponse.json({ ok: false, message: COPY.errors.generic }, { status: 500 });
+    }
+
+    const { score } = scoreQuestAnswer(quest.questType, configResult.data, parsed.data.answer, quest.maxScore);
+    const { alreadyCompleted } = await saveQuestCompletion(participantId, campaign.id, quest, score, parsed.data.answer);
+    const campaignSummary = await recomputeAndSaveCampaignProgress(participantId, campaign);
+
+    const badge = (configResult.data as { badge?: { code: string; title: string } }).badge ?? null;
+
+    return NextResponse.json({
+      ok: true,
+      alreadyCompleted,
+      score,
+      maxScore: quest.maxScore,
+      badge,
+      campaignStatus: campaignSummary.status,
+    });
+  } catch (error) {
+    console.error("[api/quest/complete] gagal menyimpan skor", error);
+    return NextResponse.json({ ok: false, message: COPY.errors.saveFailed }, { status: 500 });
+  }
 }

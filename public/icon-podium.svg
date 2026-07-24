@@ -1,0 +1,7 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Podium leaderboard">
+  <rect width="64" height="64" rx="16" fill="#eefbf9"/>
+  <rect x="10" y="34" width="13" height="18" fill="#72d2c5"/>
+  <rect x="25" y="22" width="14" height="30" fill="#219a90"/>
+  <rect x="41" y="38" width="13" height="14" fill="#146360"/>
+  <circle cx="32" cy="14" r="6" fill="#f7b626"/>
+</svg>
