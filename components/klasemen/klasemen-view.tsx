@@ -7,7 +7,7 @@ import { ErrorBanner } from "@/components/ui/error-banner";
 import { KangCageur } from "@/components/ui/kang-cageur";
 import { IconExport } from "@/components/ui/icons";
 import { COPY } from "@/lib/constants";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTimeFull } from "@/lib/format";
 import type { LeaderboardRow } from "@/lib/types";
 
 export function KlasemenView() {
@@ -54,13 +54,13 @@ export function KlasemenView() {
       doc.setFontSize(14);
       doc.text(campaignTitle || COPY.appTitle, 14, 16);
       doc.setFontSize(10);
-      doc.text(`Diekspor pada ${formatDateTime(new Date())}`, 14, 22);
+      doc.text(`Diekspor pada ${formatDateTimeFull(new Date())}`, 14, 22);
 
       // Ranking, Nama, Skor, dan Waktu Selesai -- tanpa NIP (bagian 20B.3 & 30).
       (doc as unknown as { autoTable: (opts: Record<string, unknown>) => void }).autoTable({
         startY: 28,
         head: [["Ranking", "Nama", "Skor", "Waktu Selesai"]],
-        body: rows.map((row) => [`#${row.rank}`, row.name, `${row.score}/${row.maxScore}`, formatDateTime(row.completedAt)]),
+        body: rows.map((row) => [`#${row.rank}`, row.name, `${row.score}/${row.maxScore}`, formatDateTimeFull(row.completedAt)]),
         styles: { fontSize: 10 },
         headStyles: { fillColor: [20, 99, 96] },
       });

@@ -55,6 +55,39 @@ export function formatDateTime(value: string | Date | null | undefined): string 
   return DATETIME_FORMATTER.format(date);
 }
 
+const BULAN_ID = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+/**
+ * Format tanggal + waktu lengkap sampai detik, tanpa kata sambung "pukul"
+ * (Intl.DateTimeFormat id-ID otomatis menyisipkan "pukul" saat tanggal dan
+ * jam digabung, jadi disusun manual di sini).
+ */
+export function formatDateTimeFull(value: string | Date | null | undefined): string {
+  if (!value) return "-";
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return "-";
+  const dd = String(date.getDate()).padStart(2, "0");
+  const bulan = BULAN_ID[date.getMonth()];
+  const yyyy = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mi = String(date.getMinutes()).padStart(2, "0");
+  const ss = String(date.getSeconds()).padStart(2, "0");
+  return `${dd} ${bulan} ${yyyy}, ${hh}:${mi}:${ss}`;
+}
+
 export function clampPercent(score: number, maxScore: number): number {
   if (maxScore <= 0) return 0;
   return Math.max(0, Math.min(100, Math.round((score / maxScore) * 100)));

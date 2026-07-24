@@ -37,9 +37,10 @@ export function SwipeCardsGame({ config, onFinish }: QuestGameProps<SwipeCardsCo
     setFlyDirection(direction);
     setIsDragging(false);
 
+    sfx.whoosh();
     if (correct) {
       setCombo((c) => c + 1);
-      sfx.pop();
+      sfx.ding();
     } else {
       setCombo(0);
       sfx.error();
