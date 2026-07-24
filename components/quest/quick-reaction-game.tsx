@@ -59,10 +59,13 @@ export function QuickReactionGame({ config, onFinish }: QuestGameProps<QuickReac
       <button
         type="button"
         onClick={handleTap}
-        className={`flex h-40 w-40 items-center justify-center rounded-full text-lg font-extrabold text-white shadow-lg transition active:scale-95 ${
-          round.isTarget ? "bg-teal-600" : "bg-red-400"
+        className={`flex h-40 w-40 flex-col items-center justify-center gap-1 rounded-full text-base font-extrabold text-white shadow-lg transition active:scale-95 ${
+          round.isTarget
+            ? "animate-glow-pulse bg-gradient-to-br from-teal-400 to-teal-700"
+            : "bg-gradient-to-br from-red-400 to-red-600"
         }`}
       >
+        <span className="text-4xl leading-none">{round.emoji ?? (round.isTarget ? "💰" : "⚠️")}</span>
         {round.label}
       </button>
       <p className="text-xs text-navy-400">{round.isTarget ? "Tap secepatnya!" : "Jangan tap!"}</p>

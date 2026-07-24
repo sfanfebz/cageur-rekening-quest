@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { cardTone } from "@/lib/card-palette";
 import type { BudgetSliderConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -40,15 +41,19 @@ export function BudgetSliderGame({ config, onFinish }: QuestGameProps<BudgetSlid
         </span>
       </div>
 
-      <div className="flex flex-col gap-5">
-        {config.categories.map((cat) => {
+      <div className="flex flex-col gap-3">
+        {config.categories.map((cat, index) => {
           const value = allocations[cat.id] ?? 0;
           const zone = zoneOf(value, cat);
+          const tone = cardTone(index);
           return (
-            <div key={cat.id}>
-              <div className="mb-1.5 flex items-center justify-between">
-                <p className="text-sm font-bold text-navy-700">{cat.label}</p>
-                <span className={`text-xs font-bold ${ZONE_TEXT[zone]}`}>{ZONE_LABEL[zone]}</span>
+            <div key={cat.id} className={`rounded-2xl border-2 p-3 ${tone.border} ${tone.bg}`}>
+              <div className="mb-2 flex items-center justify-between">
+                <p className={`flex items-center gap-1.5 text-sm font-bold ${tone.text}`}>
+                  <span className="text-lg leading-none">{cat.emoji ?? "💰"}</span>
+                  {cat.label}
+                </p>
+                <span className={`rounded-full bg-white/70 px-2 py-0.5 text-xs font-bold ${ZONE_TEXT[zone]}`}>{ZONE_LABEL[zone]}</span>
               </div>
               <div className="flex items-center gap-2">
                 <button

@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
@@ -85,6 +85,14 @@ const config: Config = {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.08)" },
         },
+        "kang-bob": {
+          "0%, 100%": { transform: "translateY(0) rotate(-2deg)" },
+          "50%": { transform: "translateY(-10px) rotate(2deg)" },
+        },
+        "badge-shine": {
+          "0%, 100%": { transform: "rotate(0deg) scale(1)" },
+          "50%": { transform: "rotate(6deg) scale(1.05)" },
+        },
       },
       animation: {
         "pop-in": "pop-in 0.22s ease-out",
@@ -93,6 +101,8 @@ const config: Config = {
         "float-up": "float-up 0.9s ease-out forwards",
         "coin-in": "coin-in 0.5s ease-out",
         "timer-pulse": "timer-pulse 1s ease-in-out infinite",
+        "kang-bob": "kang-bob 1.7s ease-in-out infinite",
+        "badge-shine": "badge-shine 2.4s ease-in-out infinite",
       },
     },
   },

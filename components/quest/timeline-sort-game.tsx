@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { sfx } from "@/lib/sound";
+import { cardTone } from "@/lib/card-palette";
 import type { TimelineSortConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -49,6 +50,7 @@ export function TimelineSortGame({ config, onFinish }: QuestGameProps<TimelineSo
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-100 text-[10px] font-extrabold text-teal-700">
                     {i + 1}
                   </span>
+                  {item.emoji ? <span className="text-base leading-none">{item.emoji}</span> : null}
                   {item.label}
                 </div>
               );
@@ -58,16 +60,21 @@ export function TimelineSortGame({ config, onFinish }: QuestGameProps<TimelineSo
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {remainingItems.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => place(item.id)}
-            className="rounded-xl border-2 border-navy-100 bg-white px-3 py-2 text-xs font-semibold text-navy-700 active:scale-95"
-          >
-            {item.label}
-          </button>
-        ))}
+        {remainingItems.map((item) => {
+          const originalIndex = config.items.findIndex((it) => it.id === item.id);
+          const tone = cardTone(originalIndex);
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => place(item.id)}
+              className={`flex items-center gap-1.5 rounded-xl border-2 px-3 py-2 text-xs font-semibold active:scale-95 ${tone.border} ${tone.bg} ${tone.text}`}
+            >
+              {item.emoji ? <span className="text-base leading-none">{item.emoji}</span> : null}
+              {item.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex gap-2">

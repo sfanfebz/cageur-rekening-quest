@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FeedbackLayer, type FeedbackItem } from "@/components/ui/feedback-toast";
 import { sfx } from "@/lib/sound";
+import { cardTone } from "@/lib/card-palette";
 import type { TapSelectConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -44,24 +45,30 @@ export function TapSelectGame({ config, onFinish }: QuestGameProps<TapSelectConf
       <FeedbackLayer items={feedback} onDone={(id) => setFeedback((prev) => prev.filter((f) => f.id !== id))} />
       <p className="text-sm text-navy-600">{config.instruction}</p>
       <div className="grid grid-cols-2 gap-2.5">
-        {config.cards.map((card) => {
+        {config.cards.map((card, index) => {
           const state = answered[card.id];
+          const tone = cardTone(index);
           return (
             <button
               key={card.id}
               type="button"
               onClick={() => handleTap(card.id, card.healthy)}
               disabled={Boolean(state)}
-              className={`rounded-2xl border-2 p-3 text-left text-sm font-semibold transition-all ${
+              className={`relative flex flex-col items-center gap-1.5 rounded-2xl border-2 p-3 text-center text-xs font-bold transition-all ${
                 state === "correct"
-                  ? "animate-glow-pulse border-teal-500 bg-teal-50 text-teal-800"
+                  ? "animate-glow-pulse border-teal-500 bg-teal-100 text-teal-800"
                   : state === "wrong"
-                    ? "border-red-300 bg-red-50 text-red-600"
-                    : "border-navy-100 bg-white text-navy-700 active:scale-95"
+                    ? "border-red-300 bg-red-50 text-red-500 opacity-60"
+                    : `${tone.border} ${tone.bg} ${tone.text} shadow-sm active:scale-95`
               } ${shakingId === card.id ? "animate-shake" : ""}`}
             >
-              {state === "correct" ? "✅ " : null}
-              {card.label}
+              {state === "correct" ? (
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-[10px] font-black text-white shadow">
+                  ✓
+                </span>
+              ) : null}
+              <span className="text-2xl leading-none">{card.emoji ?? "🃏"}</span>
+              <span className="leading-snug">{card.label}</span>
             </button>
           );
         })}

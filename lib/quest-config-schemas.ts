@@ -3,10 +3,12 @@ import type { QuestType } from "@/lib/types";
 
 const badgeSchema = z.object({ code: z.string(), title: z.string() }).optional();
 
+const emojiField = z.string().optional();
+
 export const tapSelectConfigSchema = z.object({
   instruction: z.string(),
   cards: z
-    .array(z.object({ id: z.string(), label: z.string(), healthy: z.boolean() }))
+    .array(z.object({ id: z.string(), label: z.string(), healthy: z.boolean(), emoji: emojiField }))
     .min(2),
   badge: badgeSchema,
 });
@@ -14,8 +16,8 @@ export const tapSelectConfigSchema = z.object({
 export const hiddenObjectConfigSchema = z.object({
   instruction: z.string(),
   timeLimitSeconds: z.number().positive().default(30),
-  targets: z.array(z.object({ id: z.string(), label: z.string() })).min(1),
-  decoys: z.array(z.object({ id: z.string(), label: z.string() })).default([]),
+  targets: z.array(z.object({ id: z.string(), label: z.string(), emoji: emojiField })).min(1),
+  decoys: z.array(z.object({ id: z.string(), label: z.string(), emoji: emojiField })).default([]),
   badge: badgeSchema,
 });
 
@@ -27,6 +29,7 @@ export const budgetSliderConfigSchema = z.object({
       z.object({
         id: z.string(),
         label: z.string(),
+        emoji: emojiField,
         idealMin: z.number(),
         idealMax: z.number(),
         warningMin: z.number(),
@@ -43,20 +46,20 @@ export const swipeCardsConfigSchema = z.object({
     .object({ right: z.string(), up: z.string(), left: z.string() })
     .default({ right: "Checkout", up: "Tunda 24 Jam", left: "Keluarkan" }),
   items: z
-    .array(z.object({ id: z.string(), label: z.string(), best: z.string() }))
+    .array(z.object({ id: z.string(), label: z.string(), best: z.string(), emoji: emojiField }))
     .min(2),
   badge: badgeSchema,
 });
 
 export const matchPairsConfigSchema = z.object({
   instruction: z.string(),
-  pairs: z.array(z.object({ id: z.string(), left: z.string(), right: z.string() })).min(2),
+  pairs: z.array(z.object({ id: z.string(), left: z.string(), right: z.string(), emoji: emojiField })).min(2),
   badge: badgeSchema,
 });
 
 export const timelineSortConfigSchema = z.object({
   instruction: z.string(),
-  items: z.array(z.object({ id: z.string(), label: z.string(), order: z.number().int().positive() })).min(2),
+  items: z.array(z.object({ id: z.string(), label: z.string(), order: z.number().int().positive(), emoji: emojiField })).min(2),
   badge: badgeSchema,
 });
 
@@ -78,14 +81,14 @@ export const scenarioChoiceConfigSchema = z.object({
 
 export const memoryCardsConfigSchema = z.object({
   instruction: z.string(),
-  pairs: z.array(z.object({ id: z.string(), label: z.string() })).min(2),
+  pairs: z.array(z.object({ id: z.string(), label: z.string(), emoji: emojiField })).min(2),
   badge: badgeSchema,
 });
 
 export const quickReactionConfigSchema = z.object({
   instruction: z.string(),
   reactionWindowMs: z.number().positive().default(1200),
-  rounds: z.array(z.object({ id: z.string(), label: z.string(), isTarget: z.boolean() })).min(1),
+  rounds: z.array(z.object({ id: z.string(), label: z.string(), isTarget: z.boolean(), emoji: emojiField })).min(1),
   badge: badgeSchema,
 });
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FeedbackLayer, type FeedbackItem } from "@/components/ui/feedback-toast";
 import { TimerRing } from "@/components/ui/timer-ring";
 import { sfx } from "@/lib/sound";
+import { cardTone } from "@/lib/card-palette";
 import type { HiddenObjectConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -86,24 +87,30 @@ export function HiddenObjectGame({ config, onFinish }: QuestGameProps<HiddenObje
         </p>
       </div>
       <div className="grid grid-cols-2 gap-2.5">
-        {chips.map((chip) => {
+        {chips.map((chip, index) => {
           const found = foundIds.has(chip.id);
+          const tone = cardTone(index);
           return (
             <button
               key={chip.id}
               type="button"
               onClick={() => handleTap(chip.id, chip.isTarget)}
               disabled={found}
-              className={`rounded-2xl border-2 p-3 text-left text-sm font-semibold transition-all ${
+              className={`relative flex flex-col items-center gap-1.5 rounded-2xl border-2 p-3 text-center text-xs font-bold transition-all ${
                 found
-                  ? "animate-coin-in border-gold-400 bg-gold-50 text-gold-700"
+                  ? "animate-coin-in border-gold-400 bg-gold-100 text-gold-700"
                   : wrongFlash === chip.id
-                    ? "animate-shake border-red-300 bg-red-50 text-red-600"
-                    : "border-navy-100 bg-white text-navy-700 active:scale-95"
+                    ? "animate-shake border-red-300 bg-red-50 text-red-500"
+                    : `${tone.border} ${tone.bg} ${tone.text} shadow-sm active:scale-95`
               }`}
             >
-              {found ? "🪙 " : null}
-              {chip.label}
+              {found ? (
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-[10px] shadow">
+                  🪙
+                </span>
+              ) : null}
+              <span className="text-2xl leading-none">{chip.emoji ?? "🔍"}</span>
+              <span className="leading-snug">{chip.label}</span>
             </button>
           );
         })}

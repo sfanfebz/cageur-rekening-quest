@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { Confetti } from "@/components/ui/confetti";
 import { KangCageur } from "@/components/ui/kang-cageur";
+import { LoadingKang } from "@/components/ui/loading-kang";
+import { BadgePill } from "@/components/ui/badge-pill";
 import { getQuestComponent } from "@/components/quest/registry";
 import { COPY } from "@/lib/constants";
 import { sfx } from "@/lib/sound";
@@ -77,12 +79,7 @@ export function QuestRunner({ campaignCode, questCode, questType, title, subtitl
   }
 
   if (phase === "submitting") {
-    return (
-      <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <KangCageur pose="thumbsup" size={96} className="animate-pulse" />
-        <p className="text-sm font-semibold text-navy-500">Menyimpan hasil…</p>
-      </div>
-    );
+    return <LoadingKang message="Menyimpan hasil…" />;
   }
 
   if (phase === "result" && result) {
@@ -99,9 +96,9 @@ export function QuestRunner({ campaignCode, questCode, questType, title, subtitl
         </p>
         <p className="text-sm text-navy-500">{percent}% terkumpul dari quest ini</p>
         {result.badge ? (
-          <div className="rounded-2xl bg-gold-50 px-4 py-3 ring-1 ring-gold-200">
+          <div className="flex flex-col items-center gap-1.5">
             <p className="text-xs font-bold uppercase tracking-wide text-gold-700">Badge Diperoleh</p>
-            <p className="text-base font-extrabold text-gold-800">{result.badge.title}</p>
+            <BadgePill badge={result.badge} />
           </div>
         ) : null}
         <LinkButton href={nextHref} fullWidth>

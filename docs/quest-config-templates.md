@@ -13,6 +13,10 @@ pemain dan error dicatat di log server — aplikasi tidak akan crash (bagian
 Field `badge` bersifat opsional di semua tipe. Kalau diisi, badge itu akan
 muncul di kartu hasil, Game Hub, dan riwayat misi setelah quest selesai.
 
+Field `emoji` juga opsional pada tiap kartu/item (kecuali `scenario_choice`
+dan `simulation`). Kalau diisi, emoji tampil besar di kartu supaya nuansa
+game lebih kental; kalau kosong, kartu tetap tampil normal tanpa emoji.
+
 ---
 
 ## `tap_select`
@@ -25,8 +29,8 @@ sehat yang salah ditap.
 {
   "instruction": "Tap semua kebiasaan yang bikin rekening makin sehat.",
   "cards": [
-    { "id": "c1", "label": "Punya dana darurat", "healthy": true },
-    { "id": "c2", "label": "Sering belanja impulsif", "healthy": false }
+    { "id": "c1", "label": "Punya dana darurat", "healthy": true, "emoji": "🛡️" },
+    { "id": "c2", "label": "Sering belanja impulsif", "healthy": false, "emoji": "🛍️" }
   ],
   "badge": { "code": "dompet-cageur", "title": "Dompet Cageur" }
 }
@@ -41,12 +45,12 @@ Pemain tap semua `targets` dalam batas waktu, sambil menghindari `decoys`.
   "instruction": "Dalam 30 detik, tap pengeluaran kecil yang bisa jadi bocor halus.",
   "timeLimitSeconds": 30,
   "targets": [
-    { "id": "t1", "label": "Kopi harian" },
-    { "id": "t2", "label": "Flash sale" }
+    { "id": "t1", "label": "Kopi harian", "emoji": "☕" },
+    { "id": "t2", "label": "Flash sale", "emoji": "⚡" }
   ],
   "decoys": [
-    { "id": "d1", "label": "Dana darurat" },
-    { "id": "d2", "label": "Cicilan" }
+    { "id": "d1", "label": "Dana darurat", "emoji": "🛡️" },
+    { "id": "d2", "label": "Cicilan", "emoji": "🏦" }
   ],
   "badge": { "code": "detektif-bocor-halus", "title": "Detektif Bocor Halus" }
 }
@@ -63,8 +67,8 @@ Penilaian tetap fleksibel/edukatif, bukan satu formula kaku.
   "instruction": "Kamu punya 100 koin gaji. Bagi ke pos yang tepat.",
   "totalCoins": 100,
   "categories": [
-    { "id": "kebutuhan", "label": "Kebutuhan utama", "idealMin": 40, "idealMax": 60, "warningMin": 30, "warningMax": 70 },
-    { "id": "tabungan", "label": "Tabungan/dana darurat", "idealMin": 15, "idealMax": 35, "warningMin": 10, "warningMax": 45 }
+    { "id": "kebutuhan", "label": "Kebutuhan utama", "emoji": "🧾", "idealMin": 40, "idealMax": 60, "warningMin": 30, "warningMax": 70 },
+    { "id": "tabungan", "label": "Tabungan/dana darurat", "emoji": "🐷", "idealMin": 15, "idealMax": 35, "warningMin": 10, "warningMax": 45 }
   ],
   "badge": { "code": "jago-atur-budget", "title": "Jago Atur Budget" }
 }
@@ -81,8 +85,8 @@ sama persis dengan salah satu nilai di `directions`.
   "instruction": "Swipe setiap barang ke keputusan yang paling bijak.",
   "directions": { "right": "Checkout", "up": "Tunda 24 Jam", "left": "Keluarkan" },
   "items": [
-    { "id": "i1", "label": "Obat", "best": "Checkout" },
-    { "id": "i2", "label": "Barang viral", "best": "Keluarkan" }
+    { "id": "i1", "label": "Obat", "best": "Checkout", "emoji": "💊" },
+    { "id": "i2", "label": "Barang viral", "best": "Keluarkan", "emoji": "🔥" }
   ],
   "badge": { "code": "anti-lapar-mata", "title": "Anti Lapar Mata" }
 }
@@ -96,8 +100,8 @@ Pemain menjodohkan item kolom kiri dengan pasangannya di kolom kanan.
 {
   "instruction": "Jodohkan istilah dengan artinya.",
   "pairs": [
-    { "id": "p1", "left": "Dana darurat", "right": "Simpanan untuk kondisi tak terduga" },
-    { "id": "p2", "left": "Cicilan", "right": "Kewajiban bayar rutin" }
+    { "id": "p1", "left": "Dana darurat", "right": "Simpanan untuk kondisi tak terduga", "emoji": "🛡️" },
+    { "id": "p2", "left": "Cicilan", "right": "Kewajiban bayar rutin", "emoji": "🏦" }
   ],
   "badge": { "code": "jago-jodoh-istilah", "title": "Jago Istilah Keuangan" }
 }
@@ -112,10 +116,10 @@ Urutan asli tidak ditampilkan ke pemain; komponen mengacak tampilannya.
 {
   "instruction": "Urutkan langkah menyusun budget bulanan.",
   "items": [
-    { "id": "s1", "label": "Catat penghasilan", "order": 1 },
-    { "id": "s2", "label": "Sisihkan tabungan", "order": 2 },
-    { "id": "s3", "label": "Bayar kebutuhan wajib", "order": 3 },
-    { "id": "s4", "label": "Alokasikan hiburan", "order": 4 }
+    { "id": "s1", "label": "Catat penghasilan", "order": 1, "emoji": "📝" },
+    { "id": "s2", "label": "Sisihkan tabungan", "order": 2, "emoji": "🐷" },
+    { "id": "s3", "label": "Bayar kebutuhan wajib", "order": 3, "emoji": "🧾" },
+    { "id": "s4", "label": "Alokasikan hiburan", "order": 4, "emoji": "🎮" }
   ],
   "badge": { "code": "runut-budget", "title": "Runut Budget" }
 }
@@ -152,9 +156,9 @@ label yang sama; pemain membuka dua kartu untuk mencari pasangannya.
 {
   "instruction": "Buka kartu dan temukan semua pasangannya.",
   "pairs": [
-    { "id": "m1", "label": "Kebutuhan" },
-    { "id": "m2", "label": "Keinginan" },
-    { "id": "m3", "label": "Tabungan" }
+    { "id": "m1", "label": "Kebutuhan", "emoji": "🧾" },
+    { "id": "m2", "label": "Keinginan", "emoji": "🛍️" },
+    { "id": "m3", "label": "Tabungan", "emoji": "🐷" }
   ],
   "badge": { "code": "ingatan-tajam", "title": "Ingatan Tajam" }
 }
@@ -170,8 +174,8 @@ Serangkaian ronde cepat. Ronde dengan `isTarget: true` harus ditap dalam
   "instruction": "Tap secepatnya saat muncul kesempatan menabung, tahan saat godaan belanja muncul.",
   "reactionWindowMs": 1200,
   "rounds": [
-    { "id": "r1", "label": "Ada rezeki lebih!", "isTarget": true },
-    { "id": "r2", "label": "Promo kilat!", "isTarget": false }
+    { "id": "r1", "label": "Ada rezeki lebih!", "isTarget": true, "emoji": "💰" },
+    { "id": "r2", "label": "Promo kilat!", "isTarget": false, "emoji": "⚡" }
   ],
   "badge": { "code": "reaksi-cageur", "title": "Reaksi Cageur" }
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { sfx } from "@/lib/sound";
+import { cardTone } from "@/lib/card-palette";
 import type { SimulationConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -38,19 +39,24 @@ export function SimulationGame({ config, onFinish }: QuestGameProps<SimulationCo
       </p>
       <p className="text-sm font-semibold text-navy-800">{step.label}</p>
       <div className="flex flex-col gap-2">
-        {step.options.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            disabled={Boolean(pickedOptionId)}
-            onClick={() => choose(option.id)}
-            className={`rounded-2xl border-2 p-3 text-left text-sm font-semibold transition ${
-              pickedOptionId === option.id ? "border-teal-500 bg-teal-50 text-teal-800" : "border-navy-100 bg-white text-navy-700 active:scale-95"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
+        {step.options.map((option, optionIndex) => {
+          const tone = cardTone(optionIndex);
+          return (
+            <button
+              key={option.id}
+              type="button"
+              disabled={Boolean(pickedOptionId)}
+              onClick={() => choose(option.id)}
+              className={`rounded-2xl border-2 p-3 text-left text-sm font-semibold transition ${
+                pickedOptionId === option.id
+                  ? "border-teal-500 bg-teal-100 text-teal-800"
+                  : `${tone.border} ${tone.bg} ${tone.text} active:scale-95`
+              }`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
       <Button disabled={!pickedOptionId} onClick={next} fullWidth>
         {stepIndex + 1 >= config.steps.length ? "Selesai" : "Lanjut"}

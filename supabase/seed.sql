@@ -35,16 +35,16 @@ values (
   '{
     "instruction": "Kang Cageur nemu beberapa kebiasaan finansial. Tap semua kebiasaan yang bikin rekening makin sehat.",
     "cards": [
-      { "id": "c1", "label": "Pengeluaran lebih kecil dari penghasilan", "healthy": true },
-      { "id": "c2", "label": "Punya dana darurat", "healthy": true },
-      { "id": "c3", "label": "Cicilan masih terkendali", "healthy": true },
-      { "id": "c4", "label": "Ada tabungan rutin", "healthy": true },
-      { "id": "c5", "label": "Sering bingung uang habis ke mana", "healthy": false },
-      { "id": "c6", "label": "Menabung hanya kalau ada sisa", "healthy": false },
-      { "id": "c7", "label": "Tidak tahu total cicilan", "healthy": false },
-      { "id": "c8", "label": "Sering belanja impulsif", "healthy": false },
-      { "id": "c9", "label": "Mencatat pengeluaran harian", "healthy": true },
-      { "id": "c10", "label": "Punya tujuan keuangan", "healthy": true }
+      { "id": "c1", "label": "Pengeluaran lebih kecil dari penghasilan", "healthy": true, "emoji": "📉" },
+      { "id": "c2", "label": "Punya dana darurat", "healthy": true, "emoji": "🛡️" },
+      { "id": "c3", "label": "Cicilan masih terkendali", "healthy": true, "emoji": "📋" },
+      { "id": "c4", "label": "Ada tabungan rutin", "healthy": true, "emoji": "🐷" },
+      { "id": "c5", "label": "Sering bingung uang habis ke mana", "healthy": false, "emoji": "😵" },
+      { "id": "c6", "label": "Menabung hanya kalau ada sisa", "healthy": false, "emoji": "🤷" },
+      { "id": "c7", "label": "Tidak tahu total cicilan", "healthy": false, "emoji": "🌀" },
+      { "id": "c8", "label": "Sering belanja impulsif", "healthy": false, "emoji": "🛍️" },
+      { "id": "c9", "label": "Mencatat pengeluaran harian", "healthy": true, "emoji": "📝" },
+      { "id": "c10", "label": "Punya tujuan keuangan", "healthy": true, "emoji": "🎯" }
     ],
     "badge": { "code": "dompet-cageur", "title": "Dompet Cageur" }
   }'::jsonb
@@ -70,20 +70,20 @@ values (
     "instruction": "Dalam 30 detik, tap pengeluaran kecil yang bisa jadi bocor halus kalau sering dan tidak dicatat.",
     "timeLimitSeconds": 30,
     "targets": [
-      { "id": "t1", "label": "Kopi harian" },
-      { "id": "t2", "label": "Jajan promo" },
-      { "id": "t3", "label": "Checkout barang lucu" },
-      { "id": "t4", "label": "Parkir dan biaya kecil-kecil" },
-      { "id": "t5", "label": "Flash sale" },
-      { "id": "t6", "label": "Langganan aplikasi yang jarang dipakai" }
+      { "id": "t1", "label": "Kopi harian", "emoji": "☕" },
+      { "id": "t2", "label": "Jajan promo", "emoji": "🍪" },
+      { "id": "t3", "label": "Checkout barang lucu", "emoji": "🛒" },
+      { "id": "t4", "label": "Parkir dan biaya kecil-kecil", "emoji": "🅿️" },
+      { "id": "t5", "label": "Flash sale", "emoji": "⚡" },
+      { "id": "t6", "label": "Langganan aplikasi yang jarang dipakai", "emoji": "📱" }
     ],
     "decoys": [
-      { "id": "d1", "label": "Makan harian" },
-      { "id": "d2", "label": "Transportasi" },
-      { "id": "d3", "label": "Listrik dan internet" },
-      { "id": "d4", "label": "Cicilan" },
-      { "id": "d5", "label": "Dana darurat" },
-      { "id": "d6", "label": "Tabungan rumah" }
+      { "id": "d1", "label": "Makan harian", "emoji": "🍚" },
+      { "id": "d2", "label": "Transportasi", "emoji": "🚌" },
+      { "id": "d3", "label": "Listrik dan internet", "emoji": "💡" },
+      { "id": "d4", "label": "Cicilan", "emoji": "🏦" },
+      { "id": "d5", "label": "Dana darurat", "emoji": "🛡️" },
+      { "id": "d6", "label": "Tabungan rumah", "emoji": "🏠" }
     ],
     "badge": { "code": "detektif-bocor-halus", "title": "Detektif Bocor Halus" }
   }'::jsonb
@@ -109,10 +109,10 @@ values (
     "instruction": "Kamu punya 100 koin gaji. Bagi ke pos yang tepat sebelum keburu habis.",
     "totalCoins": 100,
     "categories": [
-      { "id": "kebutuhan", "label": "Kebutuhan utama", "idealMin": 40, "idealMax": 60, "warningMin": 30, "warningMax": 70 },
-      { "id": "cicilan", "label": "Cicilan dan kewajiban", "idealMin": 0, "idealMax": 30, "warningMin": 0, "warningMax": 40 },
-      { "id": "tabungan", "label": "Tabungan/dana darurat", "idealMin": 15, "idealMax": 35, "warningMin": 10, "warningMax": 45 },
-      { "id": "hiburan", "label": "Hiburan/gaya hidup", "idealMin": 5, "idealMax": 20, "warningMin": 0, "warningMax": 30 }
+      { "id": "kebutuhan", "label": "Kebutuhan utama", "emoji": "🧾", "idealMin": 40, "idealMax": 60, "warningMin": 30, "warningMax": 70 },
+      { "id": "cicilan", "label": "Cicilan dan kewajiban", "emoji": "🏦", "idealMin": 0, "idealMax": 30, "warningMin": 0, "warningMax": 40 },
+      { "id": "tabungan", "label": "Tabungan/dana darurat", "emoji": "🐷", "idealMin": 15, "idealMax": 35, "warningMin": 10, "warningMax": 45 },
+      { "id": "hiburan", "label": "Hiburan/gaya hidup", "emoji": "🎮", "idealMin": 5, "idealMax": 20, "warningMin": 0, "warningMax": 30 }
     ],
     "badge": { "code": "jago-atur-budget", "title": "Jago Atur Budget" }
   }'::jsonb
@@ -138,18 +138,18 @@ values (
     "instruction": "Swipe setiap barang ke keputusan yang paling bijak.",
     "directions": { "right": "Checkout", "up": "Tunda 24 Jam", "left": "Keluarkan" },
     "items": [
-      { "id": "i1", "label": "Obat", "best": "Checkout" },
-      { "id": "i2", "label": "Kebutuhan dapur", "best": "Checkout" },
-      { "id": "i3", "label": "Pulsa/internet", "best": "Checkout" },
-      { "id": "i4", "label": "Sepatu kerja rusak", "best": "Checkout" },
-      { "id": "i5", "label": "Hadiah yang direncanakan", "best": "Checkout" },
-      { "id": "i6", "label": "Buku pengembangan diri", "best": "Tunda 24 Jam" },
-      { "id": "i7", "label": "Baju diskon", "best": "Tunda 24 Jam" },
-      { "id": "i8", "label": "Gadget karena ikut tren", "best": "Tunda 24 Jam" },
-      { "id": "i9", "label": "Dekorasi promo", "best": "Keluarkan" },
-      { "id": "i10", "label": "Cemilan promo", "best": "Keluarkan" },
-      { "id": "i11", "label": "Tas flash sale", "best": "Keluarkan" },
-      { "id": "i12", "label": "Barang viral", "best": "Keluarkan" }
+      { "id": "i1", "label": "Obat", "best": "Checkout", "emoji": "💊" },
+      { "id": "i2", "label": "Kebutuhan dapur", "best": "Checkout", "emoji": "🥘" },
+      { "id": "i3", "label": "Pulsa/internet", "best": "Checkout", "emoji": "📶" },
+      { "id": "i4", "label": "Sepatu kerja rusak", "best": "Checkout", "emoji": "👞" },
+      { "id": "i5", "label": "Hadiah yang direncanakan", "best": "Checkout", "emoji": "🎁" },
+      { "id": "i6", "label": "Buku pengembangan diri", "best": "Tunda 24 Jam", "emoji": "📚" },
+      { "id": "i7", "label": "Baju diskon", "best": "Tunda 24 Jam", "emoji": "👕" },
+      { "id": "i8", "label": "Gadget karena ikut tren", "best": "Tunda 24 Jam", "emoji": "📱" },
+      { "id": "i9", "label": "Dekorasi promo", "best": "Keluarkan", "emoji": "🖼️" },
+      { "id": "i10", "label": "Cemilan promo", "best": "Keluarkan", "emoji": "🍟" },
+      { "id": "i11", "label": "Tas flash sale", "best": "Keluarkan", "emoji": "👜" },
+      { "id": "i12", "label": "Barang viral", "best": "Keluarkan", "emoji": "🔥" }
     ],
     "badge": { "code": "anti-lapar-mata", "title": "Anti Lapar Mata" }
   }'::jsonb

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { sfx } from "@/lib/sound";
+import { cardTone } from "@/lib/card-palette";
 import type { MemoryCardsConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -9,6 +10,7 @@ interface CardEntry {
   cardId: string;
   pairId: string;
   label: string;
+  emoji?: string;
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -25,8 +27,8 @@ export function MemoryCardsGame({ config, onFinish }: QuestGameProps<MemoryCards
     () =>
       shuffle(
         config.pairs.flatMap((p) => [
-          { cardId: `${p.id}-a`, pairId: p.id, label: p.label },
-          { cardId: `${p.id}-b`, pairId: p.id, label: p.label },
+          { cardId: `${p.id}-a`, pairId: p.id, label: p.label, emoji: p.emoji },
+          { cardId: `${p.id}-b`, pairId: p.id, label: p.label, emoji: p.emoji },
         ])
       ),
     [config]
@@ -71,20 +73,29 @@ export function MemoryCardsGame({ config, onFinish }: QuestGameProps<MemoryCards
       <div className="grid grid-cols-3 gap-2">
         {cards.map((card) => {
           const isFlipped = flipped.includes(card.cardId) || matchedPairIds.has(card.pairId);
+          const pairIndex = config.pairs.findIndex((p) => p.id === card.pairId);
+          const tone = cardTone(pairIndex);
           return (
             <button
               key={card.cardId}
               type="button"
               onClick={() => flip(card)}
-              className={`flex h-16 items-center justify-center rounded-2xl border-2 p-1.5 text-center text-[11px] font-bold transition-all ${
+              className={`flex h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-2 p-1.5 text-center text-[10px] font-bold transition-all ${
                 matchedPairIds.has(card.pairId)
-                  ? "border-teal-400 bg-teal-50 text-teal-700"
+                  ? "animate-glow-pulse border-teal-400 bg-teal-100 text-teal-700"
                   : isFlipped
-                    ? "border-navy-300 bg-white text-navy-800"
-                    : "border-navy-200 bg-navy-500 text-navy-500"
+                    ? `${tone.border} ${tone.bg} ${tone.text}`
+                    : "border-navy-600 bg-gradient-to-br from-navy-500 to-navy-700 text-navy-200 active:scale-95"
               }`}
             >
-              {isFlipped ? card.label : "?"}
+              {isFlipped ? (
+                <>
+                  <span className="text-lg leading-none">{card.emoji ?? "🎴"}</span>
+                  <span>{card.label}</span>
+                </>
+              ) : (
+                <span className="text-lg">❔</span>
+              )}
             </button>
           );
         })}

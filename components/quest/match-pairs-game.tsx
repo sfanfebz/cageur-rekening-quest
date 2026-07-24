@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { sfx } from "@/lib/sound";
+import { cardTone } from "@/lib/card-palette";
 import type { MatchPairsConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -16,7 +17,10 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 export function MatchPairsGame({ config, onFinish }: QuestGameProps<MatchPairsConfig>) {
-  const leftItems = useMemo(() => shuffle(config.pairs.map((p) => ({ id: p.id, label: p.left }))), [config]);
+  const leftItems = useMemo(
+    () => shuffle(config.pairs.map((p) => ({ id: p.id, label: p.left, emoji: p.emoji }))),
+    [config]
+  );
   const rightItems = useMemo(() => shuffle(config.pairs.map((p) => ({ id: p.id, label: p.right }))), [config]);
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [wrongPair, setWrongPair] = useState<{ left: string; right: string } | null>(null);
@@ -48,44 +52,51 @@ export function MatchPairsGame({ config, onFinish }: QuestGameProps<MatchPairsCo
       <p className="text-sm text-navy-600">{config.instruction}</p>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-2">
-          {leftItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              disabled={matched.has(item.id)}
-              onClick={() => trySelect("left", item.id)}
-              className={`rounded-xl border-2 p-2.5 text-left text-xs font-semibold ${
-                matched.has(item.id)
-                  ? "border-teal-400 bg-teal-50 text-teal-700"
-                  : selectedLeft === item.id
-                    ? "border-navy-400 bg-navy-50"
-                    : wrongPair?.left === item.id
-                      ? "animate-shake border-red-300 bg-red-50"
-                      : "border-navy-100 bg-white"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+          {leftItems.map((item, index) => {
+            const tone = cardTone(index);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                disabled={matched.has(item.id)}
+                onClick={() => trySelect("left", item.id)}
+                className={`flex items-center gap-2 rounded-xl border-2 p-2.5 text-left text-xs font-semibold ${
+                  matched.has(item.id)
+                    ? "border-teal-400 bg-teal-100 text-teal-700"
+                    : selectedLeft === item.id
+                      ? "border-navy-400 bg-navy-50"
+                      : wrongPair?.left === item.id
+                        ? "animate-shake border-red-300 bg-red-50"
+                        : `${tone.border} ${tone.bg} ${tone.text}`
+                }`}
+              >
+                {item.emoji ? <span className="text-base leading-none">{item.emoji}</span> : null}
+                {item.label}
+              </button>
+            );
+          })}
         </div>
         <div className="flex flex-col gap-2">
-          {rightItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              disabled={matched.has(item.id)}
-              onClick={() => trySelect("right", item.id)}
-              className={`rounded-xl border-2 p-2.5 text-left text-xs font-semibold ${
-                matched.has(item.id)
-                  ? "border-teal-400 bg-teal-50 text-teal-700"
-                  : wrongPair?.right === item.id
-                    ? "animate-shake border-red-300 bg-red-50"
-                    : "border-navy-100 bg-white"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+          {rightItems.map((item, index) => {
+            const tone = cardTone(index + 4);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                disabled={matched.has(item.id)}
+                onClick={() => trySelect("right", item.id)}
+                className={`rounded-xl border-2 p-2.5 text-left text-xs font-semibold ${
+                  matched.has(item.id)
+                    ? "border-teal-400 bg-teal-100 text-teal-700"
+                    : wrongPair?.right === item.id
+                      ? "animate-shake border-red-300 bg-red-50"
+                      : `${tone.border} ${tone.bg} ${tone.text}`
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
       </div>
       <p className="text-center text-xs text-navy-400">{matched.size}/{config.pairs.length} pasangan cocok</p>
