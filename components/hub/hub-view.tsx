@@ -11,7 +11,8 @@ import { IconCampaign, IconKalender } from "@/components/ui/icons";
 import { QuestListItem } from "@/components/campaign/quest-list-item";
 import { COPY } from "@/lib/constants";
 import { clampPercent } from "@/lib/format";
-import { useBackgroundMusic } from "@/lib/music";
+import { useBgm } from "@/lib/bgm-engine";
+import { HUB_TRACK } from "@/lib/bgm-tracks";
 import type { CampaignProgressSummary, ParticipantSummary, QuestBadge, QuestWithState } from "@/lib/types";
 
 export interface HistoryCampaignData {
@@ -51,7 +52,6 @@ function mainCta(status: CampaignProgressSummary["status"], hasHistory: boolean)
 }
 
 export function HubView(props: HubViewProps) {
-  useBackgroundMusic("hub");
   const {
     participantName,
     summary,
@@ -68,6 +68,8 @@ export function HubView(props: HubViewProps) {
     upcomingItems,
     historyCampaigns,
   } = props;
+
+  useBgm(HUB_TRACK);
 
   const [tab, setTab] = useState<TabKey>("current");
   const ctaHref =

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isMusicMuted, toggleMusicMuted } from "@/lib/music";
+import { isMusicMuted, toggleMusicMuted } from "@/lib/bgm-engine";
 import { IconMusicNote, IconMusicNoteOff } from "@/components/ui/icons";
 
 export function MusicMuteToggle() {

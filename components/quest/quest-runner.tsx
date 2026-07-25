@@ -12,7 +12,8 @@ import { BadgePill } from "@/components/ui/badge-pill";
 import { getQuestComponent } from "@/components/quest/registry";
 import { COPY } from "@/lib/constants";
 import { sfx } from "@/lib/sound";
-import { useBackgroundMusic, type MusicState } from "@/lib/music";
+import { useBgm } from "@/lib/bgm-engine";
+import { QUEST_TRACKS, QUEST_RESULT_TRACK } from "@/lib/bgm-tracks";
 import type { QuestType } from "@/lib/types";
 
 interface QuestRunnerProps {
@@ -42,8 +43,7 @@ export function QuestRunner({ campaignCode, questCode, questType, title, subtitl
   const [result, setResult] = useState<ResultData | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const musicState: MusicState = phase === "result" ? "quest-result" : `quest:${questType}`;
-  useBackgroundMusic(musicState);
+  useBgm(phase === "result" ? QUEST_RESULT_TRACK : QUEST_TRACKS[questType]);
 
   async function submitAnswer(answer: unknown) {
     setPendingAnswer(answer);
