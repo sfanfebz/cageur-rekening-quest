@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LinkButton, Button } from "@/components/ui/button";
 import { Confetti } from "@/components/ui/confetti";
 import { KangCageur } from "@/components/ui/kang-cageur";
 import { BadgePill } from "@/components/ui/badge-pill";
+import { Modal } from "@/components/ui/modal";
 import { IconShare } from "@/components/ui/icons";
 import { COPY, resultCategory, APP_URL } from "@/lib/constants";
 import { clampPercent } from "@/lib/format";
@@ -33,16 +34,25 @@ interface ResultViewProps {
 }
 
 export function ResultView({ participantName, campaignCode, campaignTitle, totalScore, maxScore, rank, questRows, isCampaignArchived }: ResultViewProps) {
+  const [previewStatus, setPreviewStatus] = useState<"idle" | "generating">("idle");
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState<"idle" | "sharing" | "done">("idle");
   useBgm(CAMPAIGN_FINALE_TRACK);
   const percent = clampPercent(totalScore, maxScore || 1);
   const category = resultCategory(percent);
   const badges = questRows.map((row) => row.badge).filter((b): b is QuestBadge => Boolean(b));
 
-  async function handleShare() {
-    setShareStatus("sharing");
-    const text = `Saya berhasil mendapatkan skor ${totalScore} pada campaign ${campaignTitle} di Cageur Rekening Quest. Yuk ikutan main di ${APP_URL}`;
+  // Bersihkan object URL preview begitu modal ditutup / komponen unmount,
+  // supaya tidak bocor memori.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
+  async function handleOpenPreview() {
+    setPreviewStatus("generating");
     try {
       const blob = await generateShareCardBlob({
         campaignTitle,
@@ -54,12 +64,32 @@ export function ResultView({ participantName, campaignCode, campaignTitle, total
         rank,
         categoryLabel: category.label,
       });
-      const file = new File([blob], "hasil-cageur-rekening-quest.png", { type: "image/png" });
+      setPreviewBlob(blob);
+      setPreviewUrl(URL.createObjectURL(blob));
+    } finally {
+      setPreviewStatus("idle");
+    }
+  }
+
+  function closePreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewBlob(null);
+    setShareStatus("idle");
+  }
+
+  async function handleConfirmShare() {
+    if (!previewBlob) return;
+    setShareStatus("sharing");
+    const text = `Saya berhasil mendapatkan skor ${totalScore} pada campaign ${campaignTitle} di Cageur Rekening Quest. Yuk ikutan main di ${APP_URL}`;
+
+    try {
+      const file = new File([previewBlob], "hasil-cageur-rekening-quest.png", { type: "image/png" });
 
       if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] })) {
         try {
           await navigator.share({ title: COPY.appTitle, text, files: [file] });
-          setShareStatus("idle");
+          closePreview();
           return;
         } catch (err) {
           if ((err as Error)?.name === "AbortError") {
@@ -70,7 +100,7 @@ export function ResultView({ participantName, campaignCode, campaignTitle, total
         }
       }
 
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(previewBlob);
       const link = document.createElement("a");
       link.href = url;
       link.download = "hasil-cageur-rekening-quest.png";
@@ -83,7 +113,7 @@ export function ResultView({ participantName, campaignCode, campaignTitle, total
         await navigator.clipboard.writeText(text).catch(() => {});
       }
       setShareStatus("done");
-      setTimeout(() => setShareStatus("idle"), 2500);
+      setTimeout(() => closePreview(), 1500);
     } catch {
       setShareStatus("idle");
     }
@@ -127,13 +157,25 @@ export function ResultView({ participantName, campaignCode, campaignTitle, total
         <LinkButton href="/hub" variant="secondary" fullWidth>
           {COPY.result.ctaHub}
         </LinkButton>
-        <Button variant="ghost" onClick={handleShare} loading={shareStatus === "sharing"} fullWidth>
-          {shareStatus !== "sharing" ? <IconShare size={16} /> : null}
-          {shareStatus === "sharing" ? "Menyiapkan kartu…" : shareStatus === "done" ? "Gambar diunduh!" : COPY.result.ctaShare}
+        <Button variant="ghost" onClick={handleOpenPreview} loading={previewStatus === "generating"} fullWidth>
+          {previewStatus !== "generating" ? <IconShare size={16} /> : null}
+          {previewStatus === "generating" ? "Menyiapkan kartu…" : COPY.result.ctaShare}
         </Button>
       </div>
 
       <p className="text-sm font-bold text-teal-600">{COPY.closingMessage}</p>
+
+      <Modal open={previewUrl !== null} onClose={closePreview} title="Preview Kartu Hasil">
+        <div className="flex flex-col gap-4">
+          {previewUrl ? (
+            <img src={previewUrl} alt="Preview kartu hasil" className="w-full rounded-2xl ring-1 ring-gray-200" />
+          ) : null}
+          <Button onClick={handleConfirmShare} loading={shareStatus === "sharing"} fullWidth>
+            {shareStatus !== "sharing" ? <IconShare size={16} /> : null}
+            {shareStatus === "sharing" ? "Membagikan…" : shareStatus === "done" ? "Gambar diunduh!" : "Bagikan Sekarang"}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
