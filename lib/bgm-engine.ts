@@ -224,12 +224,18 @@ class TrackPlayer {
       osc.frequency.value = freq;
       if (cents) osc.detune.value = cents;
       const g = peakGain / layers.length;
+      // Attack proporsional ke durasi (bukan 20ms tetap) -- kalau not-nya sangat
+      // pendek (voice staccato/cepat), attack fix bisa lebih lambat dari target
+      // decay, bikin timeline otomasi gain jadi tidak berurutan -> klik/glitch.
+      const attackTime = Math.min(0.02, duration * 0.3);
+      const decayStart = startTime + attackTime;
+      const decayEnd = Math.max(decayStart + 0.008, startTime + duration);
       gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(g, startTime + 0.02);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      gainNode.gain.linearRampToValueAtTime(g, decayStart);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, decayEnd);
       osc.connect(gainNode).connect(this.masterGain);
       osc.start(startTime);
-      osc.stop(startTime + duration + 0.05);
+      osc.stop(decayEnd + 0.05);
     }
   }
 }
