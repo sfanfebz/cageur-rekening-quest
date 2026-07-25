@@ -244,7 +244,6 @@ let sharedMasterGain: GainNode | null = null;
 let activePlayer: TrackPlayer | null = null;
 let activeTrackId: string | null = null;
 let pendingTrack: TrackDef | null = null;
-let playRequestSeq = 0;
 let unlockAttached = false;
 
 function ensureMasterGain(ctx: AudioContext): GainNode {
@@ -256,21 +255,32 @@ function ensureMasterGain(ctx: AudioContext): GainNode {
   return sharedMasterGain;
 }
 
+function rampMasterGainTo(ctx: AudioContext, masterGain: GainNode, target: number): void {
+  const now = ctx.currentTime;
+  masterGain.gain.cancelScheduledValues(now);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+  masterGain.gain.linearRampToValueAtTime(target, now + FADE_MS / 1000);
+}
+
 /**
- * Selalu hentikan player yang sedang berjalan (kalau ada) sebelum mulai yang
- * baru -- invariant tunggal ini yang menjamin tidak pernah ada 2 track
- * kedengaran bersamaan ("menumpuk"), apapun urutan race yang terjadi di atas.
+ * Stop-lalu-start SINKRON, tanpa timer terpisah sama sekali. Versi
+ * sebelumnya menunda stop/start lewat dua window.setTimeout terpisah (satu
+ * dari stopBgm's cleanup, satu dari playBgm's call sendiri) yang urutan
+ * eksekusinya bergantung timing React/Next.js asli (Suspense, streaming
+ * data server component, dst) -- kalau urutannya meleset, bisa ada 2
+ * scheduler aktif bersamaan ("menumpuk"). Dengan versi ini, begitu track
+ * baru diminta, scheduler lama LANGSUNG berhenti di situ juga (synchronous),
+ * jadi mustahil ada 2 aktif sekaligus apapun urutan mount/unmount di atas.
+ * Not yang sudah kadung terjadwal di look-ahead window (~150ms) tetap
+ * berbunyi wajar (meluruh sesuai envelope-nya) -- itu yang memberi efek
+ * transisi halus, bukan potongan mendadak.
  */
-function startTrack(ctx: AudioContext, masterGain: GainNode, track: TrackDef, requestId: number): void {
-  if (requestId !== playRequestSeq) return;
+function startTrack(ctx: AudioContext, masterGain: GainNode, track: TrackDef): void {
   activePlayer?.stop();
   const player = new TrackPlayer(track, ctx, masterGain);
   activePlayer = player;
-  const t = ctx.currentTime;
-  masterGain.gain.cancelScheduledValues(t);
-  masterGain.gain.setValueAtTime(0, t);
-  masterGain.gain.linearRampToValueAtTime(BASE_MASTER_GAIN, t + FADE_MS / 1000);
   player.start();
+  rampMasterGainTo(ctx, masterGain, BASE_MASTER_GAIN);
 }
 
 /**
@@ -291,7 +301,7 @@ function ensureUnlockListener(ctx: AudioContext, masterGain: GainNode): void {
         if (!pendingTrack) return;
         const track = pendingTrack;
         pendingTrack = null;
-        startTrack(ctx, masterGain, track, playRequestSeq);
+        startTrack(ctx, masterGain, track);
       })
       .catch(() => {});
   };
@@ -306,43 +316,29 @@ export function playBgm(track: TrackDef): void {
   if (activeTrackId === track.id) return;
 
   const masterGain = ensureMasterGain(ctx);
-  const requestId = (playRequestSeq += 1);
   activeTrackId = track.id;
   pendingTrack = null;
 
-  const now = ctx.currentTime;
-  masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
-  masterGain.gain.linearRampToValueAtTime(0, now + FADE_MS / 1000);
+  activePlayer?.stop();
+  activePlayer = null;
 
-  window.setTimeout(() => {
-    if (requestId !== playRequestSeq) return;
-    if (ctx.state === "suspended") {
-      pendingTrack = track;
-      ensureUnlockListener(ctx, masterGain);
-      return;
-    }
-    startTrack(ctx, masterGain, track, requestId);
-  }, FADE_MS);
+  if (ctx.state === "suspended") {
+    pendingTrack = track;
+    ensureUnlockListener(ctx, masterGain);
+    return;
+  }
+  startTrack(ctx, masterGain, track);
 }
 
 export function stopBgm(): void {
   if (typeof window === "undefined") return;
   const ctx = getContext();
-  playRequestSeq += 1;
   activeTrackId = null;
   pendingTrack = null;
+  activePlayer?.stop();
+  activePlayer = null;
 
-  if (ctx && sharedMasterGain) {
-    const now = ctx.currentTime;
-    sharedMasterGain.gain.cancelScheduledValues(now);
-    sharedMasterGain.gain.setValueAtTime(sharedMasterGain.gain.value, now);
-    sharedMasterGain.gain.linearRampToValueAtTime(0, now + FADE_MS / 1000);
-  }
-  window.setTimeout(() => {
-    activePlayer?.stop();
-    activePlayer = null;
-  }, FADE_MS);
+  if (ctx && sharedMasterGain) rampMasterGainTo(ctx, sharedMasterGain, 0);
 }
 
 /** Hook React: mainkan track selama komponen mount, ganti track kalau `track` berubah. */
