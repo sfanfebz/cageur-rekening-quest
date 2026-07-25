@@ -22,6 +22,9 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "Cageur Rekening Quest",
   description: "Game edukasi literasi keuangan untuk program budaya kerja CAGEUR – Cageur Rekening.",
+  icons: {
+    icon: "/logo-fesbuker.svg",
+  },
 };
 
 export const viewport: Viewport = {
@@ -44,6 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </header>
           <main className="flex-1 px-4 pb-10 pt-4">{children}</main>
+          <footer className="px-4 pb-4 text-center text-[10px] text-gray-400">
+            Bagian dari program CP Budker Kesejahteraan 2026
+          </footer>
         </div>
       </body>
     </html>

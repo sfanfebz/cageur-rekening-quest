@@ -278,12 +278,23 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   const contentRight = MARGIN + fullW * 0.6; // batas kanan kolom teks (wordmark, judul, nama)
   const headerTop = MARGIN;
 
+  // Logo program, tinggi disamakan dengan tinggi 3 baris wordmark di sebelah
+  // kanannya (CAGEUR / REKENING / QUEST).
+  const logoSize = 108;
+  try {
+    const logoImg = await loadImage("/logo-fesbuker.svg");
+    ctx.drawImage(logoImg, MARGIN, headerTop, logoSize, logoSize);
+  } catch {
+    // Kalau logo gagal dimuat, lanjutkan tanpa logo alih-alih gagal total.
+  }
+
+  const wordmarkX = MARGIN + logoSize + 18;
   ctx.font = `800 34px ${FONT}`;
   ctx.fillStyle = "#FFFFFF";
-  ctx.fillText("CAGEUR", MARGIN, headerTop + 32);
-  ctx.fillText("REKENING", MARGIN, headerTop + 70);
+  ctx.fillText("CAGEUR", wordmarkX, headerTop + 32);
+  ctx.fillText("REKENING", wordmarkX, headerTop + 70);
   ctx.fillStyle = GOLD;
-  ctx.fillText("QUEST", MARGIN, headerTop + 108);
+  ctx.fillText("QUEST", wordmarkX, headerTop + 108);
 
   const pillY = headerTop + 130;
   ctx.font = `800 26px ${FONT}`;
@@ -578,6 +589,10 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   ctx.textAlign = "right";
   ctx.fillText(APP_URL.replace("https://", ""), qrX + qrSize, qrY + qrSize + 32);
   ctx.textAlign = "left";
+
+  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  ctx.font = `600 14px ${FONT}`;
+  ctx.fillText("Bagian dari program CP Budker Kesejahteraan 2026", MARGIN, qrY + qrSize + 32);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
