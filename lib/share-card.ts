@@ -445,10 +445,16 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   // Label badge (dengan garis pendamping kiri-kanan) + baris badge,
   // dipisah garis vertikal antar item — dilewati kalau tidak ada badge.
   // ---------------------------------------------------------------------
-  const badges = data.badgeTitles.slice(0, 3);
+  // Semua badge yang diraih ditampilkan (bagian 31) -- dulu dipotong ke 3
+  // teratas, sekarang kolom dibagi rata per baris & meluber ke baris
+  // berikutnya kalau lebih dari BADGE_COLS.
+  const badges = data.badgeTitles;
+  const BADGE_COLS = 4;
+  const BADGE_ROW_UNIT_H = 110;
   const labelY = questY + questH + 44;
   const badgeRowY = labelY + 28;
-  const badgeRowH = 148;
+  const badgeRows = badges.length > 0 ? Math.ceil(badges.length / BADGE_COLS) : 0;
+  const badgeRowH = badgeRows > 0 ? badgeRows * BADGE_ROW_UNIT_H + 38 : 0;
   if (badges.length > 0) {
     const labelText = "BADGE YANG DIRAIH";
     ctx.font = `800 19px ${FONT}`;
@@ -474,20 +480,23 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
     clearShadow(ctx);
     ctx.restore();
 
-    const colW = fullW / badges.length;
+    const colW = fullW / BADGE_COLS;
     badges.forEach((title, i) => {
-      const colX = MARGIN + i * colW;
-      if (i > 0) {
+      const row = Math.floor(i / BADGE_COLS);
+      const col = i % BADGE_COLS;
+      const colX = MARGIN + col * colW;
+      const rowCy = badgeRowY + 74 + row * BADGE_ROW_UNIT_H;
+      if (col > 0) {
         ctx.strokeStyle = "#E2ECE9";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(colX, badgeRowY + 20);
-        ctx.lineTo(colX, badgeRowY + badgeRowH - 20);
+        ctx.moveTo(colX, rowCy - 40);
+        ctx.lineTo(colX, rowCy + 40);
         ctx.stroke();
       }
       const tone = BADGE_TONES[i % BADGE_TONES.length];
       const iconCx = colX + 52;
-      const iconCy = badgeRowY + badgeRowH / 2;
+      const iconCy = rowCy;
       drawIconCircle(ctx, iconCx, iconCy, 31, tone.bg, badgeEmoji(title), 27);
       ctx.fillStyle = NAVY;
       ctx.font = `800 18px ${FONT}`;
