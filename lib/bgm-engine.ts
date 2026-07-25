@@ -243,7 +243,9 @@ class TrackPlayer {
 let sharedMasterGain: GainNode | null = null;
 let activePlayer: TrackPlayer | null = null;
 let activeTrackId: string | null = null;
+let pendingTrack: TrackDef | null = null;
 let playRequestSeq = 0;
+let unlockAttached = false;
 
 function ensureMasterGain(ctx: AudioContext): GainNode {
   if (!sharedMasterGain) {
@@ -254,6 +256,49 @@ function ensureMasterGain(ctx: AudioContext): GainNode {
   return sharedMasterGain;
 }
 
+/**
+ * Selalu hentikan player yang sedang berjalan (kalau ada) sebelum mulai yang
+ * baru -- invariant tunggal ini yang menjamin tidak pernah ada 2 track
+ * kedengaran bersamaan ("menumpuk"), apapun urutan race yang terjadi di atas.
+ */
+function startTrack(ctx: AudioContext, masterGain: GainNode, track: TrackDef, requestId: number): void {
+  if (requestId !== playRequestSeq) return;
+  activePlayer?.stop();
+  const player = new TrackPlayer(track, ctx, masterGain);
+  activePlayer = player;
+  const t = ctx.currentTime;
+  masterGain.gain.cancelScheduledValues(t);
+  masterGain.gain.setValueAtTime(0, t);
+  masterGain.gain.linearRampToValueAtTime(BASE_MASTER_GAIN, t + FADE_MS / 1000);
+  player.start();
+}
+
+/**
+ * Satu listener unlock yang persisten (bukan satu per panggilan playBgm) --
+ * begitu gesture pertama terjadi, mulai apa pun yang PALING BARU diminta
+ * (pendingTrack dibaca fresh saat itu juga), bukan track yang sudah basi.
+ */
+function ensureUnlockListener(ctx: AudioContext, masterGain: GainNode): void {
+  if (unlockAttached) return;
+  unlockAttached = true;
+  const unlock = () => {
+    window.removeEventListener("pointerdown", unlock);
+    window.removeEventListener("keydown", unlock);
+    unlockAttached = false;
+    ctx
+      .resume()
+      .then(() => {
+        if (!pendingTrack) return;
+        const track = pendingTrack;
+        pendingTrack = null;
+        startTrack(ctx, masterGain, track, playRequestSeq);
+      })
+      .catch(() => {});
+  };
+  window.addEventListener("pointerdown", unlock, { once: true });
+  window.addEventListener("keydown", unlock, { once: true });
+}
+
 export function playBgm(track: TrackDef): void {
   if (typeof window === "undefined") return;
   const ctx = getContext();
@@ -261,10 +306,9 @@ export function playBgm(track: TrackDef): void {
   if (activeTrackId === track.id) return;
 
   const masterGain = ensureMasterGain(ctx);
-  const previousPlayer = activePlayer;
   const requestId = (playRequestSeq += 1);
   activeTrackId = track.id;
-  activePlayer = null;
+  pendingTrack = null;
 
   const now = ctx.currentTime;
   masterGain.gain.cancelScheduledValues(now);
@@ -272,40 +316,22 @@ export function playBgm(track: TrackDef): void {
   masterGain.gain.linearRampToValueAtTime(0, now + FADE_MS / 1000);
 
   window.setTimeout(() => {
-    previousPlayer?.stop();
     if (requestId !== playRequestSeq) return;
-
-    const player = new TrackPlayer(track, ctx, masterGain);
-    activePlayer = player;
-
-    const begin = () => {
-      if (requestId !== playRequestSeq) return;
-      const t = ctx.currentTime;
-      masterGain.gain.cancelScheduledValues(t);
-      masterGain.gain.setValueAtTime(0, t);
-      masterGain.gain.linearRampToValueAtTime(BASE_MASTER_GAIN, t + FADE_MS / 1000);
-      player.start();
-    };
-
     if (ctx.state === "suspended") {
-      const unlock = () => {
-        ctx.resume().then(begin).catch(() => {});
-      };
-      window.addEventListener("pointerdown", unlock, { once: true });
-      window.addEventListener("keydown", unlock, { once: true });
-    } else {
-      begin();
+      pendingTrack = track;
+      ensureUnlockListener(ctx, masterGain);
+      return;
     }
+    startTrack(ctx, masterGain, track, requestId);
   }, FADE_MS);
 }
 
 export function stopBgm(): void {
   if (typeof window === "undefined") return;
   const ctx = getContext();
-  const player = activePlayer;
-  const requestId = (playRequestSeq += 1);
+  playRequestSeq += 1;
   activeTrackId = null;
-  activePlayer = null;
+  pendingTrack = null;
 
   if (ctx && sharedMasterGain) {
     const now = ctx.currentTime;
@@ -314,7 +340,8 @@ export function stopBgm(): void {
     sharedMasterGain.gain.linearRampToValueAtTime(0, now + FADE_MS / 1000);
   }
   window.setTimeout(() => {
-    if (requestId === playRequestSeq) player?.stop();
+    activePlayer?.stop();
+    activePlayer = null;
   }, FADE_MS);
 }
 
