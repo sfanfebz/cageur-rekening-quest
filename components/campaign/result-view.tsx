@@ -9,7 +9,8 @@ import { IconShare } from "@/components/ui/icons";
 import { COPY, resultCategory, APP_URL } from "@/lib/constants";
 import { clampPercent } from "@/lib/format";
 import { generateShareCardBlob } from "@/lib/share-card";
-import { useBackgroundMusic } from "@/lib/music";
+import { useBgm } from "@/lib/bgm-engine";
+import { CAMPAIGN_FINALE_TRACK } from "@/lib/bgm-tracks";
 import type { QuestBadge } from "@/lib/types";
 
 export interface ResultQuestRow {
@@ -32,8 +33,8 @@ interface ResultViewProps {
 }
 
 export function ResultView({ participantName, campaignCode, campaignTitle, totalScore, maxScore, rank, questRows, isCampaignArchived }: ResultViewProps) {
-  useBackgroundMusic("final-result");
   const [shareStatus, setShareStatus] = useState<"idle" | "sharing" | "done">("idle");
+  useBgm(CAMPAIGN_FINALE_TRACK);
   const percent = clampPercent(totalScore, maxScore || 1);
   const category = resultCategory(percent);
   const badges = questRows.map((row) => row.badge).filter((b): b is QuestBadge => Boolean(b));

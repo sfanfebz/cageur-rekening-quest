@@ -8,11 +8,12 @@ import { KangCageur } from "@/components/ui/kang-cageur";
 import { IconExport } from "@/components/ui/icons";
 import { COPY } from "@/lib/constants";
 import { formatDate, formatDateTimeFull } from "@/lib/format";
-import { useBackgroundMusic } from "@/lib/music";
+import { useBgm } from "@/lib/bgm-engine";
+import { CAMPAIGN_FINALE_TRACK } from "@/lib/bgm-tracks";
 import type { LeaderboardRow } from "@/lib/types";
 
 export function KlasemenView() {
-  useBackgroundMusic("final-result");
+  useBgm(CAMPAIGN_FINALE_TRACK);
   const [unlocked, setUnlocked] = useState(false);
   const [passcode, setPasscode] = useState("");
   const [loading, setLoading] = useState(false);
