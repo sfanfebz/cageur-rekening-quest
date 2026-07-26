@@ -4,24 +4,15 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
+import { useShuffled } from "@/lib/shuffle";
 import type { MatchPairsConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
-function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 export function MatchPairsGame({ config, onFinish }: QuestGameProps<MatchPairsConfig>) {
-  const leftItems = useMemo(
-    () => shuffle(config.pairs.map((p) => ({ id: p.id, label: p.left, emoji: p.emoji }))),
-    [config]
-  );
-  const rightItems = useMemo(() => shuffle(config.pairs.map((p) => ({ id: p.id, label: p.right }))), [config]);
+  const leftBase = useMemo(() => config.pairs.map((p) => ({ id: p.id, label: p.left, emoji: p.emoji })), [config]);
+  const rightBase = useMemo(() => config.pairs.map((p) => ({ id: p.id, label: p.right })), [config]);
+  const leftItems = useShuffled(leftBase);
+  const rightItems = useShuffled(rightBase);
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [wrongPair, setWrongPair] = useState<{ left: string; right: string } | null>(null);
   const [matched, setMatched] = useState<Set<string>>(new Set());

@@ -180,8 +180,8 @@ on conflict (campaign_id, quest_id) do update set
 insert into campaigns (campaign_code, title, description, status, start_at)
 values (
   'CR-C02',
-  'Cageur Rekening Quest — Tujuan dan Proteksi',
-  'Rangkaian misi lanjutan seputar tujuan keuangan dan proteksi diri. Segera hadir.',
+  'Cageur Rekening Quest — Prioritas Belanja & Atur Anggaran',
+  'Rangkaian misi lanjutan seputar membedakan kebutuhan/keinginan/prioritas sebelum belanja, lalu menyusun anggaran bulanan yang realistis. Segera hadir.',
   'upcoming',
   null
 )

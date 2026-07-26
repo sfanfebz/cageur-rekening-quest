@@ -2,17 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { sfx } from "@/lib/sound";
+import { useShuffled } from "@/lib/shuffle";
 import type { QuickReactionConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
 export function QuickReactionGame({ config, onFinish }: QuestGameProps<QuickReactionConfig>) {
+  const rounds = useShuffled(config.rounds);
   const [roundIndex, setRoundIndex] = useState(0);
   const [answeredThisRound, setAnsweredThisRound] = useState(false);
   const hitsRef = useRef<string[]>([]);
   const falseHitsRef = useRef(0);
   const finishedRef = useRef(false);
 
-  const round = config.rounds[roundIndex];
+  const round = rounds[roundIndex];
 
   useEffect(() => {
     if (!round) return;
@@ -25,7 +27,7 @@ export function QuickReactionGame({ config, onFinish }: QuestGameProps<QuickReac
   function goToNextRound() {
     if (finishedRef.current) return;
     const nextIndex = roundIndex + 1;
-    if (nextIndex >= config.rounds.length) {
+    if (nextIndex >= rounds.length) {
       finishedRef.current = true;
       onFinish({ hits: hitsRef.current, falseHits: falseHitsRef.current });
       return;
@@ -54,7 +56,7 @@ export function QuickReactionGame({ config, onFinish }: QuestGameProps<QuickReac
     <div className="flex flex-col items-center gap-5 py-4 text-center">
       <p className="text-sm text-navy-600">{config.instruction}</p>
       <p className="text-xs font-bold text-navy-400">
-        Ronde {roundIndex + 1} dari {config.rounds.length}
+        Ronde {roundIndex + 1} dari {rounds.length}
       </p>
       <button
         type="button"
