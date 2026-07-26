@@ -44,6 +44,10 @@ export const COPY = {
       cta: "MULAI MISI BARU",
     },
     transitionBanner: "Misi ini geus kelar waktuna, tapi aya misi baru keur kamu!",
+    noQuestsYet: {
+      message: "Quest-na keur disiapkeun, cek deui sakedap deui, ya!",
+      cta: "QUEST BELUM ADA",
+    },
   },
   questCta: {
     start: "MULAI MISI",
