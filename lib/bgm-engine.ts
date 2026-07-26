@@ -244,7 +244,8 @@ let sharedMasterGain: GainNode | null = null;
 let activePlayer: TrackPlayer | null = null;
 let activeTrackId: string | null = null;
 let pendingTrack: TrackDef | null = null;
-let unlockAttached = false;
+let audioPrimed = false;
+let unlockListenerAttached = false;
 
 function ensureMasterGain(ctx: AudioContext): GainNode {
   if (!sharedMasterGain) {
@@ -263,17 +264,12 @@ function rampMasterGainTo(ctx: AudioContext, masterGain: GainNode, target: numbe
 }
 
 /**
- * Stop-lalu-start SINKRON, tanpa timer terpisah sama sekali. Versi
- * sebelumnya menunda stop/start lewat dua window.setTimeout terpisah (satu
- * dari stopBgm's cleanup, satu dari playBgm's call sendiri) yang urutan
- * eksekusinya bergantung timing React/Next.js asli (Suspense, streaming
- * data server component, dst) -- kalau urutannya meleset, bisa ada 2
- * scheduler aktif bersamaan ("menumpuk"). Dengan versi ini, begitu track
- * baru diminta, scheduler lama LANGSUNG berhenti di situ juga (synchronous),
- * jadi mustahil ada 2 aktif sekaligus apapun urutan mount/unmount di atas.
- * Not yang sudah kadung terjadwal di look-ahead window (~150ms) tetap
- * berbunyi wajar (meluruh sesuai envelope-nya) -- itu yang memberi efek
- * transisi halus, bukan potongan mendadak.
+ * Stop-lalu-start SINKRON, tanpa timer terpisah sama sekali -- begitu track
+ * baru diminta, scheduler lama LANGSUNG berhenti di situ juga, jadi mustahil
+ * ada 2 aktif sekaligus apapun urutan mount/unmount di atas. Not yang sudah
+ * kadung terjadwal di look-ahead window (~150ms) tetap berbunyi wajar
+ * (meluruh sesuai envelope-nya) -- itu yang memberi efek transisi halus,
+ * bukan potongan mendadak.
  */
 function startTrack(ctx: AudioContext, masterGain: GainNode, track: TrackDef): void {
   activePlayer?.stop();
@@ -284,29 +280,59 @@ function startTrack(ctx: AudioContext, masterGain: GainNode, track: TrackDef): v
 }
 
 /**
- * Satu listener unlock yang persisten (bukan satu per panggilan playBgm) --
- * begitu gesture pertama terjadi, mulai apa pun yang PALING BARU diminta
- * (pendingTrack dibaca fresh saat itu juga), bukan track yang sudah basi.
+ * Coba resume AudioContext. Aman dipanggil di luar gesture user (no-op
+ * kalau browser menolak, listener retry tetap terpasang menunggu gesture
+ * berikutnya) maupun di DALAM gesture (lihat primeBgmAudio()). Listener
+ * HANYA dilepas begitu context betul-betul "running" -- beda dari versi
+ * lama yang melepas listener setelah satu kali coba meskipun gagal, yang
+ * bisa bikin audio tidak pernah nyala lagi kalau percobaan pertama gagal.
  */
-function ensureUnlockListener(ctx: AudioContext, masterGain: GainNode): void {
-  if (unlockAttached) return;
-  unlockAttached = true;
-  const unlock = () => {
-    window.removeEventListener("pointerdown", unlock);
-    window.removeEventListener("keydown", unlock);
-    unlockAttached = false;
-    ctx
-      .resume()
-      .then(() => {
-        if (!pendingTrack) return;
+function attemptUnlock(ctx: AudioContext, masterGain: GainNode): void {
+  ctx
+    .resume()
+    .then(() => {
+      if (ctx.state !== "running" || audioPrimed) return;
+      audioPrimed = true;
+      if (unlockListenerAttached) {
+        window.removeEventListener("pointerdown", retryUnlock);
+        window.removeEventListener("keydown", retryUnlock);
+        unlockListenerAttached = false;
+      }
+      if (pendingTrack) {
         const track = pendingTrack;
         pendingTrack = null;
         startTrack(ctx, masterGain, track);
-      })
-      .catch(() => {});
-  };
-  window.addEventListener("pointerdown", unlock, { once: true });
-  window.addEventListener("keydown", unlock, { once: true });
+      }
+    })
+    .catch(() => {});
+
+  if (!audioPrimed && !unlockListenerAttached) {
+    unlockListenerAttached = true;
+    window.addEventListener("pointerdown", retryUnlock, { passive: true });
+    window.addEventListener("keydown", retryUnlock);
+  }
+}
+
+function retryUnlock(): void {
+  const ctx = getContext();
+  if (!ctx) return;
+  attemptUnlock(ctx, ensureMasterGain(ctx));
+}
+
+/**
+ * Buka gerbang autoplay audio SEDINI MUNGKIN dalam alur aplikasi -- dipanggil
+ * dari gesture pertama yang dijamin selalu terjadi (submit form identitas,
+ * lihat components/identity/identity-form.tsx). Dengan ini, AudioContext
+ * biasanya sudah "running" jauh sebelum Game Hub sempat mount, jadi musik
+ * setiap state berikutnya otomatis langsung bunyi tanpa perlu klik lagi.
+ * Aman dipanggil berkali-kali / dari komponen mana pun; setelah context
+ * benar-benar aktif, panggilan berikutnya jadi no-op murah.
+ */
+export function primeBgmAudio(): void {
+  if (typeof window === "undefined" || audioPrimed) return;
+  const ctx = getContext();
+  if (!ctx) return;
+  attemptUnlock(ctx, ensureMasterGain(ctx));
 }
 
 export function playBgm(track: TrackDef): void {
@@ -317,16 +343,16 @@ export function playBgm(track: TrackDef): void {
 
   const masterGain = ensureMasterGain(ctx);
   activeTrackId = track.id;
-  pendingTrack = null;
 
   activePlayer?.stop();
   activePlayer = null;
 
-  if (ctx.state === "suspended") {
+  if (ctx.state !== "running") {
     pendingTrack = track;
-    ensureUnlockListener(ctx, masterGain);
+    attemptUnlock(ctx, masterGain);
     return;
   }
+  pendingTrack = null;
   startTrack(ctx, masterGain, track);
 }
 
