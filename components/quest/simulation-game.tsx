@@ -1,18 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
+import { shuffle } from "@/lib/shuffle";
 import type { SimulationConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
 export function SimulationGame({ config, onFinish }: QuestGameProps<SimulationConfig>) {
+  // Urutan STEP sengaja tidak diacak -- tiap step itu kelanjutan cerita
+  // dari step sebelumnya (mis. "dana darurat kepakai" cuma masuk akal
+  // setelah step "mulai menyisihkan dana darurat"). Yang diacak cuma
+  // urutan opsi jawaban di tiap step, dan itu pun ditunda ke effect
+  // setelah hidrasi supaya tidak hydration-mismatch (lihat lib/shuffle.ts).
+  const [steps, setSteps] = useState(config.steps);
+  useEffect(() => {
+    setSteps(config.steps.map((s) => ({ ...s, options: shuffle(s.options) })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
   const [stepIndex, setStepIndex] = useState(0);
   const [choices, setChoices] = useState<Record<string, string>>({});
   const [pickedOptionId, setPickedOptionId] = useState<string | null>(null);
 
-  const step = config.steps[stepIndex];
+  const step = steps[stepIndex];
 
   function choose(optionId: string) {
     if (pickedOptionId) return;
@@ -24,7 +35,7 @@ export function SimulationGame({ config, onFinish }: QuestGameProps<SimulationCo
     const updated = { ...choices, [step.id]: pickedOptionId! };
     setChoices(updated);
     setPickedOptionId(null);
-    if (stepIndex + 1 >= config.steps.length) {
+    if (stepIndex + 1 >= steps.length) {
       onFinish({ choices: updated });
     } else {
       setStepIndex((i) => i + 1);
@@ -35,7 +46,7 @@ export function SimulationGame({ config, onFinish }: QuestGameProps<SimulationCo
     <div className="flex flex-col gap-4">
       <p className="text-sm text-navy-600">{config.instruction}</p>
       <p className="text-xs font-bold uppercase tracking-wide text-teal-600">
-        Langkah {stepIndex + 1} dari {config.steps.length}
+        Langkah {stepIndex + 1} dari {steps.length}
       </p>
       <p className="text-sm font-semibold text-navy-800">{step.label}</p>
       <div className="flex flex-col gap-2">
@@ -59,7 +70,7 @@ export function SimulationGame({ config, onFinish }: QuestGameProps<SimulationCo
         })}
       </div>
       <Button disabled={!pickedOptionId} onClick={next} fullWidth>
-        {stepIndex + 1 >= config.steps.length ? "Selesai" : "Lanjut"}
+        {stepIndex + 1 >= steps.length ? "Selesai" : "Lanjut"}
       </Button>
     </div>
   );

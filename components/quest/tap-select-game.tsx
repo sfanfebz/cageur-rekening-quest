@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { FeedbackLayer, type FeedbackItem } from "@/components/ui/feedback-toast";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
+import { useShuffled } from "@/lib/shuffle";
 import type { TapSelectConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
 export function TapSelectGame({ config, onFinish }: QuestGameProps<TapSelectConfig>) {
+  const cards = useShuffled(config.cards);
   const [answered, setAnswered] = useState<Record<string, "correct" | "wrong">>({});
   const [shakingId, setShakingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
@@ -45,7 +47,7 @@ export function TapSelectGame({ config, onFinish }: QuestGameProps<TapSelectConf
       <FeedbackLayer items={feedback} onDone={(id) => setFeedback((prev) => prev.filter((f) => f.id !== id))} />
       <p className="text-sm text-navy-600">{config.instruction}</p>
       <div className="grid grid-cols-2 gap-2.5">
-        {config.cards.map((card, index) => {
+        {cards.map((card, index) => {
           const state = answered[card.id];
           const tone = cardTone(index);
           return (

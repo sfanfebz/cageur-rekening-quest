@@ -5,27 +5,22 @@ import { FeedbackLayer, type FeedbackItem } from "@/components/ui/feedback-toast
 import { TimerRing } from "@/components/ui/timer-ring";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
+import { useShuffled } from "@/lib/shuffle";
 import type { HiddenObjectConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
-function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 export function HiddenObjectGame({ config, onFinish }: QuestGameProps<HiddenObjectConfig>) {
-  const chips = useMemo(
-    () =>
-      shuffle([
-        ...config.targets.map((t) => ({ ...t, isTarget: true as const })),
-        ...config.decoys.map((d) => ({ ...d, isTarget: false as const })),
-      ]),
+  // Referensi stabil dulu (useMemo, tanpa keacakan) sebelum diacak lewat
+  // useShuffled -- kalau tidak, effect di dalamnya bakal mengacak ulang
+  // tiap render karena array baru selalu dianggap "berubah".
+  const combined = useMemo(
+    () => [
+      ...config.targets.map((t) => ({ ...t, isTarget: true as const })),
+      ...config.decoys.map((d) => ({ ...d, isTarget: false as const })),
+    ],
     [config]
   );
+  const chips = useShuffled(combined);
 
   const [secondsLeft, setSecondsLeft] = useState(config.timeLimitSeconds);
   const [foundIds, setFoundIds] = useState<Set<string>>(new Set());

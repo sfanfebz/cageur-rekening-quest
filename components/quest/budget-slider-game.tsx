@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cardTone } from "@/lib/card-palette";
+import { useShuffled } from "@/lib/shuffle";
 import type { BudgetSliderConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -19,6 +20,7 @@ const ZONE_BAR: Record<Zone, string> = { green: "bg-teal-500", yellow: "bg-gold-
 const ZONE_TEXT: Record<Zone, string> = { green: "text-teal-700", yellow: "text-gold-700", red: "text-red-600" };
 
 export function BudgetSliderGame({ config, onFinish }: QuestGameProps<BudgetSliderConfig>) {
+  const categories = useShuffled(config.categories);
   const [allocations, setAllocations] = useState<Record<string, number>>(() =>
     Object.fromEntries(config.categories.map((c) => [c.id, 0]))
   );
@@ -42,7 +44,7 @@ export function BudgetSliderGame({ config, onFinish }: QuestGameProps<BudgetSlid
       </div>
 
       <div className="flex flex-col gap-3">
-        {config.categories.map((cat, index) => {
+        {categories.map((cat, index) => {
           const value = allocations[cat.id] ?? 0;
           const zone = zoneOf(value, cat);
           const tone = cardTone(index);

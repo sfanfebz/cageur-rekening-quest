@@ -1,18 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
+import { shuffle } from "@/lib/shuffle";
 import type { ScenarioChoiceConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
 export function ScenarioChoiceGame({ config, onFinish }: QuestGameProps<ScenarioChoiceConfig>) {
+  // Render awal (server + hidrasi client pertama) sengaja urutan ASLI dari
+  // config supaya tidak hydration-mismatch (lihat lib/shuffle.ts) -- baru
+  // diacak (urutan skenario DAN urutan opsi tiap skenario) lewat effect
+  // setelah hidrasi kelar.
+  const [scenarios, setScenarios] = useState(config.scenarios);
+  useEffect(() => {
+    setScenarios(shuffle(config.scenarios).map((s) => ({ ...s, options: shuffle(s.options) })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
   const [index, setIndex] = useState(0);
   const [choices, setChoices] = useState<Record<string, string>>({});
   const [pickedOptionId, setPickedOptionId] = useState<string | null>(null);
 
-  const scenario = config.scenarios[index];
+  const scenario = scenarios[index];
   const pickedOption = scenario.options.find((o) => o.id === pickedOptionId) ?? null;
 
   function choose(optionId: string) {
@@ -27,7 +37,7 @@ export function ScenarioChoiceGame({ config, onFinish }: QuestGameProps<Scenario
     const updated = { ...choices, [scenario.id]: pickedOptionId! };
     setChoices(updated);
     setPickedOptionId(null);
-    if (index + 1 >= config.scenarios.length) {
+    if (index + 1 >= scenarios.length) {
       onFinish({ choices: updated });
     } else {
       setIndex((i) => i + 1);
@@ -37,7 +47,7 @@ export function ScenarioChoiceGame({ config, onFinish }: QuestGameProps<Scenario
   return (
     <div className="flex flex-col gap-4">
       <p className="text-xs font-bold uppercase tracking-wide text-teal-600">
-        Skenario {index + 1} dari {config.scenarios.length}
+        Skenario {index + 1} dari {scenarios.length}
       </p>
       <p className="text-sm font-semibold text-navy-800">{scenario.prompt}</p>
 
@@ -76,7 +86,7 @@ export function ScenarioChoiceGame({ config, onFinish }: QuestGameProps<Scenario
       ) : null}
 
       <Button disabled={!pickedOptionId} onClick={next} fullWidth>
-        {index + 1 >= config.scenarios.length ? "Selesai" : "Lanjut"}
+        {index + 1 >= scenarios.length ? "Selesai" : "Lanjut"}
       </Button>
     </div>
   );

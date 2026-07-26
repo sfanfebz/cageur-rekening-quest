@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
+import { useShuffled } from "@/lib/shuffle";
 import type { SwipeCardsConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -17,6 +18,7 @@ const STAMP_STYLE: Record<Direction, string> = {
 };
 
 export function SwipeCardsGame({ config, onFinish }: QuestGameProps<SwipeCardsConfig>) {
+  const items = useShuffled(config.items);
   const [index, setIndex] = useState(0);
   const [decisions, setDecisions] = useState<Record<string, string>>({});
   const [flyDirection, setFlyDirection] = useState<Direction | null>(null);
@@ -25,9 +27,9 @@ export function SwipeCardsGame({ config, onFinish }: QuestGameProps<SwipeCardsCo
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
 
-  const currentItem = config.items[index];
-  const nextItem = config.items[index + 1];
-  const remaining = config.items.length - index;
+  const currentItem = items[index];
+  const nextItem = items[index + 1];
+  const remaining = items.length - index;
 
   function decide(direction: Direction) {
     if (!currentItem || flyDirection) return;
@@ -49,7 +51,7 @@ export function SwipeCardsGame({ config, onFinish }: QuestGameProps<SwipeCardsCo
     setTimeout(() => {
       setFlyDirection(null);
       setDragOffset({ x: 0, y: 0 });
-      if (index + 1 >= config.items.length) {
+      if (index + 1 >= items.length) {
         onFinish({ decisions: { ...decisions, [currentItem.id]: label } });
       } else {
         setIndex((i) => i + 1);

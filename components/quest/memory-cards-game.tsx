@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
+import { useShuffled } from "@/lib/shuffle";
 import type { MemoryCardsConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -13,26 +14,16 @@ interface CardEntry {
   emoji?: string;
 }
 
-function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 export function MemoryCardsGame({ config, onFinish }: QuestGameProps<MemoryCardsConfig>) {
-  const cards = useMemo<CardEntry[]>(
+  const combined = useMemo<CardEntry[]>(
     () =>
-      shuffle(
-        config.pairs.flatMap((p) => [
-          { cardId: `${p.id}-a`, pairId: p.id, label: p.label, emoji: p.emoji },
-          { cardId: `${p.id}-b`, pairId: p.id, label: p.label, emoji: p.emoji },
-        ])
-      ),
+      config.pairs.flatMap((p) => [
+        { cardId: `${p.id}-a`, pairId: p.id, label: p.label, emoji: p.emoji },
+        { cardId: `${p.id}-b`, pairId: p.id, label: p.label, emoji: p.emoji },
+      ]),
     [config]
   );
+  const cards = useShuffled(combined);
 
   const [flipped, setFlipped] = useState<string[]>([]);
   const [matchedPairIds, setMatchedPairIds] = useState<Set<string>>(new Set());

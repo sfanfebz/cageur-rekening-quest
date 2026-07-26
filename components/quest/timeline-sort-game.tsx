@@ -1,23 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
+import { useShuffled } from "@/lib/shuffle";
 import type { TimelineSortConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
-function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 export function TimelineSortGame({ config, onFinish }: QuestGameProps<TimelineSortConfig>) {
-  const shuffled = useMemo(() => shuffle(config.items), [config]);
+  const shuffled = useShuffled(config.items);
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
 
   function place(id: string) {
