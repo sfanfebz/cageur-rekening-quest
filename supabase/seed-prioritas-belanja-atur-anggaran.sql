@@ -17,20 +17,36 @@
 --
 -- Jalankan setelah supabase/schema.sql DAN supabase/seed.sql (campaign
 -- CR-C02 harus sudah ada). Aman dijalankan ulang. Langkah pertama script
--- ini MENGHAPUS 10 quest lama Q013-Q022 beserta seluruh keterkaitannya
--- (campaign_quests, participant_quest_progress ikut terhapus otomatis
--- lewat on delete cascade di schema.sql) -- aman karena CR-C02 belum
--- pernah berstatus 'active' sehingga belum ada peserta yang memainkannya.
--- Tidak menyentuh baris campaigns CR-C02 sendiri -- statusnya tetap
--- 'upcoming' sampai diaktifkan lewat
+-- ini MENGHAPUS 10 quest lama Q013-Q022 beserta seluruh keterkaitannya --
+-- aman karena CR-C02 belum pernah berstatus 'active' sehingga belum ada
+-- peserta yang memainkannya. Tidak menyentuh baris campaigns CR-C02
+-- sendiri -- statusnya tetap 'upcoming' sampai diaktifkan lewat
 -- supabase/scripts/04-update-campaign-status.sql Skenario B saat mau dites.
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
 -- Hapus 10 quest lama (Q013-Q022, rencana "Tujuan dan Proteksi") beserta
 -- seluruh baris campaign_quests/participant_quest_progress yang menunjuk
--- ke sana (cascade otomatis lewat FK di schema.sql).
+-- ke sana. Dihapus EKSPLISIT lebih dulu (bukan mengandalkan on delete
+-- cascade di schema.sql) -- di sebagian instance Supabase yang tabelnya
+-- sudah dibuat lebih awal, constraint FK campaign_quests_quest_id_fkey
+-- belum memakai ON DELETE CASCADE (create table if not exists tidak
+-- meng-update constraint pada tabel yang sudah ada), jadi delete langsung
+-- ke quests akan gagal dengan error 23503 kalau baris terkait dihapus
+-- belakangan.
 -- ---------------------------------------------------------------------------
+delete from participant_quest_progress
+where quest_id in (
+  select id from quests
+  where quest_code in ('Q013', 'Q014', 'Q015', 'Q016', 'Q017', 'Q018', 'Q019', 'Q020', 'Q021', 'Q022')
+);
+
+delete from campaign_quests
+where quest_id in (
+  select id from quests
+  where quest_code in ('Q013', 'Q014', 'Q015', 'Q016', 'Q017', 'Q018', 'Q019', 'Q020', 'Q021', 'Q022')
+);
+
 delete from quests
 where quest_code in ('Q013', 'Q014', 'Q015', 'Q016', 'Q017', 'Q018', 'Q019', 'Q020', 'Q021', 'Q022');
 
