@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { LinkButton } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { KangCageur } from "@/components/ui/kang-cageur";
 import { BadgePill } from "@/components/ui/badge-pill";
@@ -72,6 +72,7 @@ export function HubView(props: HubViewProps) {
   useBgm(HUB_TRACK);
 
   const [tab, setTab] = useState<TabKey>("current");
+  const hasQuests = activeQuestCount > 0;
   const ctaHref =
     activeSummary.status === "completed"
       ? `/campaign/${activeCampaign.campaignCode}/result`
@@ -135,54 +136,67 @@ export function HubView(props: HubViewProps) {
             <p className="font-display text-base font-extrabold">{activeCampaign.title}</p>
             {activeCampaign.description ? <p className="mt-1 text-xs text-teal-50/90">{activeCampaign.description}</p> : null}
 
-            <div className="mt-3">
-              <div className="mb-1.5 flex items-center justify-between text-xs font-bold text-teal-50">
-                <span>
-                  Quest {activeSummary.completedQuestCount} dari {activeQuestCount}
-                </span>
-                <span>
-                  {activeSummary.totalScore}/{activeSummary.maxScore}
-                </span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-white/30">
-                <div
-                  className="h-full rounded-full bg-white transition-[width] duration-500 ease-out"
-                  style={{ width: `${clampPercent(activeSummary.completedQuestCount, activeQuestCount || 1)}%` }}
-                />
-              </div>
-            </div>
+            {hasQuests ? (
+              <>
+                <div className="mt-3">
+                  <div className="mb-1.5 flex items-center justify-between text-xs font-bold text-teal-50">
+                    <span>
+                      Quest {activeSummary.completedQuestCount} dari {activeQuestCount}
+                    </span>
+                    <span>
+                      {activeSummary.totalScore}/{activeSummary.maxScore}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-white/30">
+                    <div
+                      className="h-full rounded-full bg-white transition-[width] duration-500 ease-out"
+                      style={{ width: `${clampPercent(activeSummary.completedQuestCount, activeQuestCount || 1)}%` }}
+                    />
+                  </div>
+                </div>
 
-            {earnedBadgeTitles.length > 0 ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {earnedBadgeTitles.map((title) => (
-                  <BadgePill key={title} badge={{ code: title, title } satisfies QuestBadge} />
+                {earnedBadgeTitles.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {earnedBadgeTitles.map((title) => (
+                      <BadgePill key={title} badge={{ code: title, title } satisfies QuestBadge} />
+                    ))}
+                  </div>
+                ) : null}
+
+                {nextQuestTitle && activeSummary.status !== "completed" ? (
+                  <p className="mt-3 text-xs text-teal-50">
+                    Quest berikutnya: <span className="font-bold text-white">{nextQuestTitle}</span>
+                  </p>
+                ) : null}
+
+                <LinkButton href={ctaHref} className="mt-4 !bg-none !bg-white !text-teal-600 !shadow-none hover:!bg-teal-50" fullWidth>
+                  {mainCta(activeSummary.status, showNewCampaignBanner)}
+                </LinkButton>
+              </>
+            ) : (
+              <>
+                <p className="mt-3 text-xs text-teal-50">{COPY.hub.noQuestsYet.message}</p>
+                <Button disabled className="mt-4" fullWidth>
+                  {COPY.hub.noQuestsYet.cta}
+                </Button>
+              </>
+            )}
+          </div>
+
+          {hasQuests ? (
+            <div className="flex flex-col gap-2">
+              {activeQuestStates
+                .filter((q) => q.quest.status !== "archived")
+                .map((questState, index) => (
+                  <QuestListItem
+                    key={questState.quest.id}
+                    questState={questState}
+                    campaignCode={activeCampaign.campaignCode}
+                    index={index}
+                  />
                 ))}
-              </div>
-            ) : null}
-
-            {nextQuestTitle && activeSummary.status !== "completed" ? (
-              <p className="mt-3 text-xs text-teal-50">
-                Quest berikutnya: <span className="font-bold text-white">{nextQuestTitle}</span>
-              </p>
-            ) : null}
-
-            <LinkButton href={ctaHref} className="mt-4 !bg-none !bg-white !text-teal-600 !shadow-none hover:!bg-teal-50" fullWidth>
-              {mainCta(activeSummary.status, showNewCampaignBanner)}
-            </LinkButton>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            {activeQuestStates
-              .filter((q) => q.quest.status !== "archived")
-              .map((questState, index) => (
-                <QuestListItem
-                  key={questState.quest.id}
-                  questState={questState}
-                  campaignCode={activeCampaign.campaignCode}
-                  index={index}
-                />
-              ))}
-          </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
