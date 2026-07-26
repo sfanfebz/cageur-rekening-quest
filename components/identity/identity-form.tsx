@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { LoadingKang } from "@/components/ui/loading-kang";
 import { COPY } from "@/lib/constants";
+import { primeBgmAudio } from "@/lib/bgm-engine";
 
 const ONLY_DIGITS = /^\d+$/;
 
@@ -38,6 +39,10 @@ export function IdentityForm() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    // Interaksi pertama yang dijamin terjadi di seluruh aplikasi -- buka
+    // gerbang autoplay audio di sini, sinkron di dalam gesture klik, supaya
+    // AudioContext sudah "running" jauh sebelum Game Hub sempat mount.
+    primeBgmAudio();
     setSubmitError(null);
     if (!validateClientSide()) return;
 
