@@ -6,6 +6,7 @@ import { TimerRing } from "@/components/ui/timer-ring";
 import { sfx } from "@/lib/sound";
 import { cardTone } from "@/lib/card-palette";
 import { useShuffled } from "@/lib/shuffle";
+import { InstructionGate } from "@/components/quest/instruction-gate";
 import type { HiddenObjectConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
@@ -22,6 +23,7 @@ export function HiddenObjectGame({ config, onFinish }: QuestGameProps<HiddenObje
   );
   const chips = useShuffled(combined);
 
+  const [started, setStarted] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(config.timeLimitSeconds);
   const [foundIds, setFoundIds] = useState<Set<string>>(new Set());
   const [wrongTaps, setWrongTaps] = useState(0);
@@ -36,6 +38,7 @@ export function HiddenObjectGame({ config, onFinish }: QuestGameProps<HiddenObje
   }
 
   useEffect(() => {
+    if (!started) return;
     if (secondsLeft <= 0) {
       finish();
       return;
@@ -43,7 +46,7 @@ export function HiddenObjectGame({ config, onFinish }: QuestGameProps<HiddenObje
     const timer = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [secondsLeft]);
+  }, [secondsLeft, started]);
 
   useEffect(() => {
     if (foundIds.size === config.targets.length && config.targets.length > 0) {
@@ -69,6 +72,10 @@ export function HiddenObjectGame({ config, onFinish }: QuestGameProps<HiddenObje
       pushFeedback("CEK DEUI!", "error");
       setTimeout(() => setWrongFlash(null), 350);
     }
+  }
+
+  if (!started) {
+    return <InstructionGate instruction={config.instruction} onConfirm={() => setStarted(true)} />;
   }
 
   return (
