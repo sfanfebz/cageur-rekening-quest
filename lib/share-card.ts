@@ -31,10 +31,19 @@ const GOLD = "#E8A93A";
 const GRAY = "#7C8A93";
 
 const BADGE_TONES = [
-  { bg: "#EC6FA0", fg: "#FFFFFF" },
-  { bg: "#3B82C9", fg: "#FFFFFF" },
-  { bg: "#2E9E5B", fg: "#FFFFFF" },
+  { bg: "#EC6FA0" },
+  { bg: "#3B82C9" },
+  { bg: "#2E9E5B" },
+  { bg: "#E8A93A" },
+  { bg: "#8B5CF6" },
 ];
+
+// Berapa banyak ikon badge yang ditampilkan penuh sebelum sisanya diringkas
+// jadi satu chip "+N lainnya" -- inilah kunci yang bikin tinggi kartu selalu
+// tetap (fixed) berapa pun jumlah badge yang diraih pemain, alih-alih terus
+// bertambah tinggi ke bawah seperti desain lama (itu penyebab footer
+// terpotong keluar kanvas kalau badge-nya banyak).
+const MAX_BADGE_ICONS = 5;
 
 function badgeEmoji(title: string): string {
   const t = title.toLowerCase();
@@ -116,8 +125,8 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
   return cursorY;
 }
 
-/** Teks rata tengah multi-baris (dipakai untuk label kategori & badge). */
-function wrapCentered(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, maxWidth: number, lineHeight: number, maxLines = 2) {
+/** Teks rata tengah multi-baris (dipakai untuk judul campaign & kategori). */
+function wrapCentered(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, maxWidth: number, lineHeight: number, maxLines = 2): number {
   const words = text.split(" ");
   const lines: string[] = [];
   let line = "";
@@ -131,9 +140,20 @@ function wrapCentered(ctx: CanvasRenderingContext2D, text: string, cx: number, y
     }
   }
   if (line) lines.push(line);
+
+  const truncated = lines.length > maxLines;
   const shown = lines.slice(0, maxLines);
+  if (truncated) {
+    let last = shown[shown.length - 1];
+    while (ctx.measureText(`${last}…`).width > maxWidth && last.length > 1) {
+      last = last.slice(0, -1);
+    }
+    shown[shown.length - 1] = `${last}…`;
+  }
+
   const startY = y - ((shown.length - 1) * lineHeight) / 2;
   shown.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineHeight));
+  return startY + shown.length * lineHeight;
 }
 
 function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
@@ -253,10 +273,16 @@ function drawTealBackground(ctx: CanvasRenderingContext2D) {
 
 /**
  * Membuat kartu hasil 4:5 (potret) — latar gradasi teal bertekstur geometris,
- * tanpa bingkai, dengan Kang Cageur berukuran besar sebagai fokus utama.
- * Bagian ajakan main + QR selalu ditambatkan di tepi bawah kanvas supaya
- * kartu terasa penuh di setiap ukuran konten. Dijalankan sepenuhnya di
- * browser (Canvas API), tidak ada data yang dikirim ke server.
+ * Kang Cageur besar sebagai fokus utama di tengah atas. Desain sengaja
+ * dirombak jadi satu kolom sederhana dengan tinggi TIAP bagian tetap
+ * (fixed) apa pun datanya -- termasuk badge, yang di versi lama ditampilkan
+ * sebagai grid dengan judul lengkap dan tinggi ikut bertambah kalau
+ * badge-nya banyak, sampai mendorong footer (ajakan main + QR) keluar dari
+ * kanvas. Sekarang badge cuma ditampilkan sebagai deretan ikon satu baris
+ * (maksimum MAX_BADGE_ICONS, sisanya diringkas "+N") -- info intinya
+ * (raih berapa badge) tetap ada tanpa bikin tinggi kartu jadi tidak
+ * terduga. Dijalankan sepenuhnya di browser (Canvas API), tidak ada data
+ * yang dikirim ke server.
  */
 export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> {
   const canvas = document.createElement("canvas");
@@ -267,63 +293,64 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
 
   const percent = data.maxScore > 0 ? Math.round((data.score / data.maxScore) * 100) : 0;
   const fullW = WIDTH - MARGIN * 2;
+  const centerX = WIDTH / 2;
 
   drawTealBackground(ctx);
 
   // ---------------------------------------------------------------------
-  // Header — wordmark 3 baris + pill status di kolom kiri; Kang Cageur
-  // besar + lingkaran glow di kolom kanan (kolom terpisah supaya karakter
-  // bisa diperbesar tanpa menabrak teks judul di bawahnya)
+  // Header — baris tunggal: logo kecil + wordmark di kiri, pill status
+  // di kanan. Jauh lebih ringkas dari versi lama (wordmark 3 baris +
+  // pill terpisah di bawahnya).
   // ---------------------------------------------------------------------
-  const contentRight = MARGIN + fullW * 0.6; // batas kanan kolom teks (wordmark, judul, nama)
-  const headerTop = MARGIN;
-
-  // Logo program, tinggi disamakan dengan tinggi 3 baris wordmark di sebelah
-  // kanannya (CAGEUR / REKENING / QUEST).
-  const logoSize = 108;
+  const headerY = MARGIN;
+  const logoSize = 60;
   try {
     const logoImg = await loadImage("/logo-fesbuker.svg");
-    ctx.drawImage(logoImg, MARGIN, headerTop, logoSize, logoSize);
+    ctx.drawImage(logoImg, MARGIN, headerY, logoSize, logoSize);
   } catch {
     // Kalau logo gagal dimuat, lanjutkan tanpa logo alih-alih gagal total.
   }
 
-  const wordmarkX = MARGIN + logoSize + 18;
-  ctx.font = `800 34px ${FONT}`;
+  ctx.font = `800 24px ${FONT}`;
   ctx.fillStyle = "#FFFFFF";
-  ctx.fillText("CAGEUR", wordmarkX, headerTop + 32);
-  ctx.fillText("REKENING", wordmarkX, headerTop + 70);
+  ctx.textBaseline = "middle";
+  const wordmarkX = MARGIN + logoSize + 16;
+  ctx.fillText("CAGEUR REKENING", wordmarkX, headerY + logoSize / 2 - 12);
   ctx.fillStyle = GOLD;
-  ctx.fillText("QUEST", wordmarkX, headerTop + 108);
+  ctx.fillText("QUEST", wordmarkX, headerY + logoSize / 2 + 14);
+  ctx.textBaseline = "alphabetic";
 
-  const pillY = headerTop + 130;
-  ctx.font = `800 26px ${FONT}`;
+  ctx.font = `800 22px ${FONT}`;
   const pillLabel = "🏆 Misi Selesai!";
-  const pillW = ctx.measureText(pillLabel).width + 50;
-  const pillH = 60;
-  const pillX = (WIDTH - pillW) / 2; // centered supaya lebih dekat ke maskot, tidak mepet kiri
+  const pillW = ctx.measureText(pillLabel).width + 44;
+  const pillH = logoSize;
+  const pillX = WIDTH - MARGIN - pillW;
   ctx.save();
   cardShadow(ctx);
   ctx.fillStyle = "#FFFFFF";
-  roundedRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
+  roundedRect(ctx, pillX, headerY, pillW, pillH, pillH / 2);
   ctx.fill();
   clearShadow(ctx);
   ctx.restore();
   ctx.fillStyle = TEAL_DARK;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(pillLabel, pillX + pillW / 2, pillY + pillH / 2 + 1);
+  ctx.fillText(pillLabel, pillX + pillW / 2, headerY + pillH / 2 + 1);
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
 
-  // Kang Cageur — besar, kanan atas, dengan lingkaran glow lembut di belakang
-  const kangWidth = 360;
+  // ---------------------------------------------------------------------
+  // Kang Cageur — besar, tengah, dengan lingkaran glow lembut di
+  // belakang. Ukuran & posisi tetap (fixed), tidak bergantung data.
+  // ---------------------------------------------------------------------
+  const mascotTop = headerY + logoSize + 26;
+  const kangWidth = 330;
   const kangHeight = kangWidth / KANG_THUMBSUP_ASPECT;
-  const kangX = WIDTH - MARGIN - kangWidth + 34;
-  const kangY = headerTop - 6;
-  const glowCx = kangX + kangWidth / 2;
-  const glowCy = kangY + kangHeight * 0.52;
-  const glowR = 268;
+  const kangX = centerX - kangWidth / 2;
+  const kangY = mascotTop;
+  const glowCx = centerX;
+  const glowCy = kangY + kangHeight * 0.5;
+  const glowR = 250;
 
   ctx.save();
   const glow = ctx.createRadialGradient(glowCx, glowCy, glowR * 0.2, glowCx, glowCy, glowR);
@@ -348,37 +375,34 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   }
 
   // ---------------------------------------------------------------------
-  // Judul campaign — teks polos, dibatasi ke kolom kiri
+  // Judul campaign + nama peserta — rata tengah, dibatasi maksimum 2
+  // baris (judul) supaya tinggi bagian ini selalu bisa diprediksi.
   // ---------------------------------------------------------------------
-  const titleColW = contentRight - MARGIN;
-  const y = pillY + pillH + 30;
+  const titleTextW = fullW - 80;
+  let cursorY = mascotTop + kangHeight + 34;
   ctx.fillStyle = GOLD;
-  ctx.font = `800 17px ${FONT}`;
-  ctx.fillText("CAMPAIGN", MARGIN, y);
+  ctx.font = `800 16px ${FONT}`;
+  ctx.textAlign = "center";
+  ctx.fillText("CAMPAIGN", centerX, cursorY);
+
+  cursorY += 40;
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = `800 42px ${FONT}`;
-  const titleEndY = wrapText(ctx, data.campaignTitle, MARGIN, y + 46, titleColW, 47, 2);
+  ctx.font = `800 38px ${FONT}`;
+  cursorY = wrapCentered(ctx, data.campaignTitle, centerX, cursorY, titleTextW, 42, 2) - 20;
+
+  cursorY += 20;
+  ctx.font = `700 22px ${FONT}`;
+  ctx.fillStyle = "rgba(255,255,255,0.82)";
+  ctx.fillText(`🙋 ${truncateToWidth(ctx, data.participantName, titleTextW)}`, centerX, cursorY);
+  ctx.textAlign = "left";
 
   // ---------------------------------------------------------------------
-  // Nama peserta — label kecil + nama di baris sendiri (bukan satu baris
-  // inline) supaya nama panjang tidak terpotong ellipsis; posisi dihitung
-  // dari akhir judul supaya tidak tabrakan saat judul membungkus 2 baris.
+  // Skor akhir — kartu putih besar (angka skor) + pita kategori emas,
+  // berdampingan. Tinggi tetap (fixed), pusat perhatian kartu.
   // ---------------------------------------------------------------------
-  const participantLabelY = titleEndY + 14;
-  ctx.font = `700 18px ${FONT}`;
-  ctx.fillStyle = "rgba(255,255,255,0.72)";
-  ctx.fillText("🙋 DISELESAIKAN OLEH", MARGIN, participantLabelY);
-  ctx.font = `800 27px ${FONT}`;
-  ctx.fillStyle = "#FFFFFF";
-  const participantY = participantLabelY + 34;
-  ctx.fillText(truncateToWidth(ctx, data.participantName, titleColW), MARGIN, participantY);
-
-  // ---------------------------------------------------------------------
-  // Baris skor — kartu putih solid + pita kategori emas solid
-  // ---------------------------------------------------------------------
-  const scoreY = participantY + 34;
-  const scoreH = 196;
-  const scoreCardW = fullW * 0.6;
+  const scoreY = cursorY + 34;
+  const scoreH = 186;
+  const scoreCardW = fullW * 0.58;
   const ribbonGap = 20;
   const ribbonW = fullW - scoreCardW - ribbonGap;
   const ribbonX = MARGIN + scoreCardW + ribbonGap;
@@ -392,18 +416,18 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   ctx.restore();
 
   ctx.fillStyle = GRAY;
-  ctx.font = `800 17px ${FONT}`;
-  ctx.fillText("SKOR AKHIR", MARGIN + 32, scoreY + 42);
+  ctx.font = `800 16px ${FONT}`;
+  ctx.fillText("SKOR AKHIR", MARGIN + 32, scoreY + 40);
   ctx.fillStyle = TEAL_DARK;
-  ctx.font = `800 96px ${FONT}`;
-  ctx.fillText(`${data.score}`, MARGIN + 30, scoreY + 146);
+  ctx.font = `800 88px ${FONT}`;
+  ctx.fillText(`${data.score}`, MARGIN + 30, scoreY + 138);
   const scoreW = ctx.measureText(`${data.score}`).width;
   ctx.fillStyle = GRAY;
-  ctx.font = `700 32px ${FONT}`;
-  ctx.fillText(`/ ${data.maxScore}`, MARGIN + 30 + scoreW + 12, scoreY + 146);
-  ctx.font = `700 18px ${FONT}`;
+  ctx.font = `700 30px ${FONT}`;
+  ctx.fillText(`/ ${data.maxScore}`, MARGIN + 30 + scoreW + 12, scoreY + 138);
+  ctx.font = `700 17px ${FONT}`;
   ctx.fillStyle = NAVY;
-  ctx.fillText("POIN", MARGIN + 32, scoreY + 176);
+  ctx.fillText("POIN", MARGIN + 32, scoreY + 166);
 
   ctx.save();
   cardShadow(ctx);
@@ -413,153 +437,143 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   clearShadow(ctx);
   ctx.restore();
   ctx.fillStyle = NAVY;
-  ctx.font = `800 32px ${FONT}`;
+  ctx.font = `800 30px ${FONT}`;
   ctx.textAlign = "center";
-  wrapCentered(ctx, data.categoryLabel, ribbonX + ribbonW / 2, scoreY + scoreH / 2, ribbonW - 28, 36, 3);
+  wrapCentered(ctx, data.categoryLabel, ribbonX + ribbonW / 2, scoreY + scoreH / 2, ribbonW - 28, 34, 3);
   ctx.textAlign = "left";
 
   // ---------------------------------------------------------------------
-  // Kartu gabungan: jumlah quest + pesan motivasi, dipisah garis tengah
+  // Baris statistik — SATU baris, tinggi tetap: jumlah quest di kiri,
+  // deretan ikon badge (dibatasi MAX_BADGE_ICONS + chip "+N") di kanan.
+  // Inilah bagian yang dulu jadi grid badge tak terbatas tingginya --
+  // sekarang selalu satu baris berapa pun jumlah badge-nya.
   // ---------------------------------------------------------------------
-  const questY = scoreY + scoreH + 20;
-  const questH = 150;
+  const statsY = scoreY + scoreH + 22;
+  const statsH = 118;
   ctx.save();
   cardShadow(ctx);
   ctx.fillStyle = "#FFFFFF";
-  roundedRect(ctx, MARGIN, questY, fullW, questH, 24);
+  roundedRect(ctx, MARGIN, statsY, fullW, statsH, 24);
   ctx.fill();
   clearShadow(ctx);
   ctx.restore();
 
-  const midX = MARGIN + fullW / 2;
+  const statsMidX = MARGIN + fullW * 0.42;
   ctx.strokeStyle = "#E2ECE9";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(midX, questY + 24);
-  ctx.lineTo(midX, questY + questH - 24);
+  ctx.moveTo(statsMidX, statsY + 20);
+  ctx.lineTo(statsMidX, statsY + statsH - 20);
   ctx.stroke();
 
-  drawIconCircle(ctx, MARGIN + 56, questY + 76, 30, "#E3F5F3", "✅", 26);
+  const statsCy = statsY + statsH / 2;
+  drawIconCircle(ctx, MARGIN + 54, statsCy, 30, "#E3F5F3", "✅", 26);
   ctx.fillStyle = NAVY;
-  ctx.font = `800 44px ${FONT}`;
-  ctx.fillText(`${data.questCount}`, MARGIN + 108, questY + 70);
-  ctx.font = `800 22px ${FONT}`;
+  ctx.font = `800 40px ${FONT}`;
+  ctx.textBaseline = "middle";
+  ctx.fillText(`${data.questCount}`, MARGIN + 104, statsCy - 12);
+  ctx.font = `700 17px ${FONT}`;
   ctx.fillStyle = GRAY;
-  wrapText(ctx, "quest diselesaikan", MARGIN + 108, questY + 104, midX - (MARGIN + 108) - 16, 27, 2);
+  ctx.fillText("Quest Selesai", MARGIN + 104, statsCy + 22);
+  ctx.textBaseline = "alphabetic";
 
-  drawIconCircle(ctx, midX + 56, questY + 72, 30, "#FCF1DE", "🎯", 26);
-  ctx.fillStyle = NAVY;
-  ctx.font = `700 22px ${FONT}`;
-  wrapText(ctx, motivationalText(percent), midX + 108, questY + 62, MARGIN + fullW - (midX + 108) - 14, 28, 3);
-
-  // ---------------------------------------------------------------------
-  // Label badge (dengan garis pendamping kiri-kanan) + baris badge,
-  // dipisah garis vertikal antar item — dilewati kalau tidak ada badge.
-  // ---------------------------------------------------------------------
-  // Semua badge yang diraih ditampilkan (bagian 31) -- dulu dipotong ke 3
-  // teratas, sekarang kolom dibagi rata per baris & meluber ke baris
-  // berikutnya kalau lebih dari BADGE_COLS.
-  const badges = data.badgeTitles;
-  const BADGE_COLS = 4;
-  const BADGE_ROW_UNIT_H = 110;
-  const labelY = questY + questH + 44;
-  const badgeRowY = labelY + 28;
-  const badgeRows = badges.length > 0 ? Math.ceil(badges.length / BADGE_COLS) : 0;
-  const badgeRowH = badgeRows > 0 ? badgeRows * BADGE_ROW_UNIT_H + 38 : 0;
-  if (badges.length > 0) {
-    const labelText = "BADGE YANG DIRAIH";
-    ctx.font = `800 19px ${FONT}`;
-    ctx.fillStyle = "#FFFFFF";
-    ctx.textAlign = "center";
-    ctx.fillText(labelText, WIDTH / 2, labelY);
-    ctx.textAlign = "left";
-    const labelW = ctx.measureText(labelText).width;
-    ctx.strokeStyle = "rgba(255,255,255,0.45)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(MARGIN, labelY - 6);
-    ctx.lineTo(WIDTH / 2 - labelW / 2 - 20, labelY - 6);
-    ctx.moveTo(WIDTH / 2 + labelW / 2 + 20, labelY - 6);
-    ctx.lineTo(WIDTH - MARGIN, labelY - 6);
-    ctx.stroke();
-
-    ctx.save();
-    cardShadow(ctx);
-    ctx.fillStyle = "#FFFFFF";
-    roundedRect(ctx, MARGIN, badgeRowY, fullW, badgeRowH, 24);
-    ctx.fill();
-    clearShadow(ctx);
-    ctx.restore();
-
-    const colW = fullW / BADGE_COLS;
-    badges.forEach((title, i) => {
-      const row = Math.floor(i / BADGE_COLS);
-      const col = i % BADGE_COLS;
-      const colX = MARGIN + col * colW;
-      const rowCy = badgeRowY + 74 + row * BADGE_ROW_UNIT_H;
-      if (col > 0) {
-        ctx.strokeStyle = "#E2ECE9";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(colX, rowCy - 40);
-        ctx.lineTo(colX, rowCy + 40);
-        ctx.stroke();
-      }
+  const badgeAreaX = statsMidX + 36;
+  const badgeAreaW = MARGIN + fullW - badgeAreaX - 20;
+  if (data.badgeTitles.length > 0) {
+    const shown = data.badgeTitles.slice(0, MAX_BADGE_ICONS);
+    const overflow = data.badgeTitles.length - shown.length;
+    const iconR = 26;
+    const iconGap = 12;
+    const chipW = overflow > 0 ? 54 : 0;
+    const totalW = shown.length * (iconR * 2) + (shown.length - 1) * iconGap + (overflow > 0 ? iconGap + chipW : 0);
+    let iconCx = badgeAreaX + Math.max(0, (badgeAreaW - totalW) / 2) + iconR;
+    shown.forEach((title, i) => {
       const tone = BADGE_TONES[i % BADGE_TONES.length];
-      const iconCx = colX + 52;
-      const iconCy = rowCy;
-      drawIconCircle(ctx, iconCx, iconCy, 31, tone.bg, badgeEmoji(title), 27);
+      drawIconCircle(ctx, iconCx, statsCy - 6, iconR, tone.bg, badgeEmoji(title), 24);
+      iconCx += iconR * 2 + iconGap;
+    });
+    if (overflow > 0) {
+      const chipX = iconCx - iconR;
+      ctx.fillStyle = "#EFF3F2";
+      roundedRect(ctx, chipX, statsCy - 6 - iconR, chipW, iconR * 2, iconR);
+      ctx.fill();
       ctx.fillStyle = NAVY;
       ctx.font = `800 18px ${FONT}`;
-      const textX = iconCx + 44;
-      const textMaxW = colW - (textX - colX) - 16;
-      wrapText(ctx, title, textX, iconCy - 8, textMaxW, 23, 2);
-    });
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`+${overflow}`, chipX + chipW / 2, statsCy - 6 + 1);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+    }
+    ctx.font = `700 17px ${FONT}`;
+    ctx.fillStyle = GRAY;
+    ctx.textAlign = "center";
+    ctx.fillText(
+      data.badgeTitles.length === 1 ? "1 Badge Diraih" : `${data.badgeTitles.length} Badge Diraih`,
+      badgeAreaX + badgeAreaW / 2,
+      statsCy + 30
+    );
+    ctx.textAlign = "left";
+  } else {
+    ctx.font = `700 18px ${FONT}`;
+    ctx.fillStyle = GRAY;
+    ctx.textAlign = "center";
+    ctx.fillText("Belum ada badge", badgeAreaX + badgeAreaW / 2, statsCy + 6);
+    ctx.textAlign = "left";
   }
 
   // ---------------------------------------------------------------------
-  // Footer — selalu ditambatkan di tepi bawah kanvas (posisi tetap dari
-  // bawah, tapi bergeser turun kalau konten di atasnya ternyata lebih
-  // panjang dari perkiraan, supaya tidak pernah tabrakan)
+  // Satu baris pesan motivasi -- ringkas, tidak makan tempat.
   // ---------------------------------------------------------------------
-  const qrSize = 152;
-  const footerH = qrSize + 46;
-  const contentBottom = badges.length > 0 ? badgeRowY + badgeRowH : questY + questH;
-  const footerY = Math.max(HEIGHT - MARGIN - footerH, contentBottom + 34);
+  const motivationY = statsY + statsH + 46;
+  ctx.font = `700 22px ${FONT}`;
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "center";
+  ctx.fillText(truncateToWidth(ctx, motivationalText(percent), fullW), centerX, motivationY);
+  ctx.textAlign = "left";
+
+  // ---------------------------------------------------------------------
+  // Footer — selalu ditambatkan di tepi bawah kanvas. Karena semua bagian
+  // di atas sekarang punya tinggi tetap (termasuk badge), footer ini
+  // TIDAK PERNAH terdorong keluar kanvas apa pun jumlah datanya.
+  // ---------------------------------------------------------------------
+  const qrSize = 140;
+  const footerH = qrSize + 44;
+  const footerY = HEIGHT - MARGIN - footerH;
   const qrX = WIDTH - MARGIN - qrSize;
   const qrY = footerY;
 
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = `800 29px ${FONT}`;
-  ctx.fillText("Yuk mainkan juga &", MARGIN, footerY + 30);
+  ctx.font = `800 27px ${FONT}`;
+  ctx.fillText("Yuk mainkan juga &", MARGIN, footerY + 28);
 
-  const line2Y = footerY + 70;
-  ctx.font = `800 29px ${FONT}`;
+  const line2Y = footerY + 66;
+  ctx.font = `800 27px ${FONT}`;
   ctx.fillText("raih ", MARGIN, line2Y);
   const raihW = ctx.measureText("raih ").width;
 
   const hlText = "insight";
-  ctx.font = `800 29px ${FONT}`;
+  ctx.font = `800 27px ${FONT}`;
   const hlW = ctx.measureText(hlText).width;
   const hlX = MARGIN + raihW;
   ctx.fillStyle = "#FBE3AE";
-  roundedRect(ctx, hlX - 6, line2Y - 27, hlW + 12, 38, 9);
+  roundedRect(ctx, hlX - 6, line2Y - 25, hlW + 12, 36, 9);
   ctx.fill();
   ctx.fillStyle = NAVY;
   ctx.fillText(hlText, hlX, line2Y);
 
-  ctx.font = `800 29px ${FONT}`;
+  ctx.font = `800 27px ${FONT}`;
   ctx.fillStyle = "#FFFFFF";
   ctx.fillText(" serumu sendiri!", hlX + hlW, line2Y);
 
-  ctx.font = `italic 600 19px ${FONT}`;
+  ctx.font = `italic 600 18px ${FONT}`;
   ctx.fillStyle = "rgba(255,255,255,0.8)";
-  ctx.fillText("Scan untuk ikutan main ya ✨", MARGIN, line2Y + 46);
+  ctx.fillText("Scan untuk ikutan main ya ✨", MARGIN, line2Y + 42);
 
   drawCurvedArrow(
     ctx,
-    { x: MARGIN + 310, y: line2Y + 42 },
-    { x: qrX - 100, y: line2Y + 76 },
+    { x: MARGIN + 290, y: line2Y + 38 },
+    { x: qrX - 90, y: line2Y + 70 },
     { x: qrX - 18, y: qrY + qrSize / 2 + 4 },
     "#FFFFFF"
   );
