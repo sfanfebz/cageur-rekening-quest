@@ -41,8 +41,8 @@ const TAP_SELECT_TRACK: TrackDef = {
   timingHumanizePct: 0.02,
   voices: [
     { role: "bass", oscType: "triangle", octave: -1, gain: 0.13, stepInterval: 4, density: 0.95, gateRatio: 0.4, chordToneBias: 1, chordToneWeights: [0.7, 0.1, 0.2], registerSpan: 0 },
-    { role: "lead", oscType: "square", octave: 1, gain: 0.08, stepInterval: 2, density: 0.8, gateRatio: 0.28, chordToneBias: 0.85, registerSpan: 2, swingRatio: 0.56 },
-    { role: "arp", oscType: "square", octave: 2, gain: 0.045, stepInterval: 1, density: 0.4, gateRatio: 0.16, chordToneBias: 0.6, registerSpan: 3, swingRatio: 0.58 },
+    { role: "lead", oscType: "square", octave: 1, gain: 0.075, stepInterval: 2, density: 0.7, gateRatio: 0.3, chordToneBias: 0.85, registerSpan: 2, swingRatio: 0.56 },
+    { role: "arp", oscType: "triangle", octave: 2, gain: 0.04, stepInterval: 2, density: 0.35, gateRatio: 0.22, chordToneBias: 0.6, registerSpan: 3, swingRatio: 0.58 },
   ],
 };
 
@@ -86,7 +86,7 @@ const SWIPE_CARDS_TRACK: TrackDef = {
   voices: [
     { role: "bass", oscType: "triangle", octave: -1, gain: 0.13, stepInterval: 2, density: 1, gateRatio: 0.4, chordToneBias: 1, chordToneWeights: [0.8, 0.1, 0.1], registerSpan: 0 },
     { role: "arp", oscType: "square", octave: 0, gain: 0.08, stepInterval: 4, density: 0.9, gateRatio: 0.3, chordToneBias: 0.9, registerSpan: 1 },
-    { role: "lead", oscType: "square", octave: 2, gain: 0.05, stepInterval: 1, density: 0.4, gateRatio: 0.22, chordToneBias: 0.7, registerSpan: 3 },
+    { role: "lead", oscType: "triangle", octave: 2, gain: 0.05, stepInterval: 2, density: 0.35, gateRatio: 0.28, chordToneBias: 0.7, registerSpan: 3 },
   ],
 };
 
@@ -101,7 +101,7 @@ const MATCH_PAIRS_TRACK: TrackDef = {
   voices: [
     { role: "bass", oscType: "triangle", octave: -1, gain: 0.09, stepInterval: 8, density: 0.9, gateRatio: 0.5, chordToneBias: 1, chordToneWeights: [0.8, 0.1, 0.1], registerSpan: 0 },
     { role: "arp", oscType: "square", octave: 1, gain: 0.06, stepInterval: 2, density: 0.85, gateRatio: 0.3, chordToneBias: 0.7, registerSpan: 3 },
-    { role: "lead", oscType: "square", octave: 3, gain: 0.035, stepInterval: 1, density: 0.16, gateRatio: 0.14, chordToneBias: 0.4, registerSpan: 4 },
+    { role: "lead", oscType: "triangle", octave: 2, gain: 0.035, stepInterval: 2, density: 0.16, gateRatio: 0.22, chordToneBias: 0.4, registerSpan: 3 },
   ],
 };
 
@@ -145,21 +145,27 @@ const MEMORY_CARDS_TRACK: TrackDef = {
   voices: [
     { role: "bass", oscType: "triangle", octave: -1, gain: 0.09, stepInterval: 8, density: 1, gateRatio: 0.4, chordToneBias: 1, chordToneWeights: [1, 0, 0], registerSpan: 0 },
     { role: "arp", oscType: "square", octave: 2, gain: 0.055, stepInterval: 2, density: 0.5, gateRatio: 0.22, chordToneBias: 0.6, registerSpan: 3 },
-    { role: "lead", oscType: "square", octave: 3, gain: 0.03, stepInterval: 1, density: 0.14, gateRatio: 0.14, chordToneBias: 0.3, registerSpan: 5 },
+    { role: "lead", oscType: "triangle", octave: 2, gain: 0.03, stepInterval: 2, density: 0.14, gateRatio: 0.24, chordToneBias: 0.3, registerSpan: 4 },
   ],
 };
 
+// quick_reaction sebelumnya punya DUA voice square yang sama-sama bunyi di
+// SETIAP step 16th-note pada tempo tercepat (172bpm) -- jadinya tembakan
+// beruntun blip square nyaris tanpa jeda, kedengaran seperti alarm, bukan
+// musik. Sekarang bass dipindah ke triangle (lebih empuk) dan kedua voice
+// diberi jarak antar-not (stepInterval naik) supaya tetap terasa mendesak
+// tapi tidak menyakitkan telinga.
 const QUICK_REACTION_TRACK: TrackDef = {
   id: "quick_reaction",
   rootNote: "C3",
   scale: "minorPentatonic",
-  bpm: 172,
+  bpm: 160,
   barsPerLoop: 2,
   chordDegrees: [0, 3],
-  timingHumanizePct: 0.015,
+  timingHumanizePct: 0.02,
   voices: [
-    { role: "bass", oscType: "square", octave: -1, gain: 0.11, stepInterval: 1, density: 0.95, gateRatio: 0.3, chordToneBias: 1, chordToneWeights: [0.6, 0, 0.4], registerSpan: 0 },
-    { role: "arp", oscType: "square", octave: 1, gain: 0.05, stepInterval: 1, density: 0.6, gateRatio: 0.14, chordToneBias: 0.6, registerSpan: 1 },
+    { role: "bass", oscType: "triangle", octave: -1, gain: 0.12, stepInterval: 2, density: 0.9, gateRatio: 0.4, chordToneBias: 1, chordToneWeights: [0.6, 0, 0.4], registerSpan: 0 },
+    { role: "lead", oscType: "square", octave: 1, gain: 0.055, stepInterval: 4, density: 0.6, gateRatio: 0.3, chordToneBias: 0.65, registerSpan: 1 },
   ],
 };
 
