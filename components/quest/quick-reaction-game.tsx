@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { sfx } from "@/lib/sound";
 import { useShuffled } from "@/lib/shuffle";
+import { InstructionGate } from "@/components/quest/instruction-gate";
 import type { QuickReactionConfig } from "@/lib/quest-config-schemas";
 import type { QuestGameProps } from "@/components/quest/types";
 
 export function QuickReactionGame({ config, onFinish }: QuestGameProps<QuickReactionConfig>) {
   const rounds = useShuffled(config.rounds);
+  const [started, setStarted] = useState(false);
   const [roundIndex, setRoundIndex] = useState(0);
   const [answeredThisRound, setAnsweredThisRound] = useState(false);
   const hitsRef = useRef<string[]>([]);
@@ -17,12 +19,12 @@ export function QuickReactionGame({ config, onFinish }: QuestGameProps<QuickReac
   const round = rounds[roundIndex];
 
   useEffect(() => {
-    if (!round) return;
+    if (!started || !round) return;
     setAnsweredThisRound(false);
     const timer = setTimeout(() => goToNextRound(), config.reactionWindowMs);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roundIndex]);
+  }, [roundIndex, started]);
 
   function goToNextRound() {
     if (finishedRef.current) return;
@@ -46,6 +48,10 @@ export function QuickReactionGame({ config, onFinish }: QuestGameProps<QuickReac
       sfx.error();
     }
     setTimeout(() => goToNextRound(), 180);
+  }
+
+  if (!started) {
+    return <InstructionGate instruction={config.instruction} onConfirm={() => setStarted(true)} />;
   }
 
   if (!round) {
