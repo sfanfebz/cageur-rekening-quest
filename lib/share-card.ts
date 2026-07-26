@@ -133,8 +133,8 @@ function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: 
   return `${t}…`;
 }
 
-/** Bungkus teks rata kiri ke beberapa baris, kembalikan posisi Y setelah baris terakhir. */
-function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines = 2): number {
+/** Pecah teks jadi larik baris (tanpa menggambar) -- dipakai kalau tinggi blok teksnya perlu diketahui dulu sebelum digambar (mis. buat penengahan vertikal). */
+function computeWrappedLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, maxLines = 2): string[] {
   const words = text.split(" ");
   const lines: string[] = [];
   let line = "";
@@ -156,7 +156,12 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
     while (ctx.measureText(`${last}…`).width > maxWidth && last.length > 1) last = last.slice(0, -1);
     shown[shown.length - 1] = `${last}…`;
   }
+  return shown;
+}
 
+/** Bungkus teks rata kiri ke beberapa baris, kembalikan posisi Y setelah baris terakhir. */
+function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines = 2): number {
+  const shown = computeWrappedLines(ctx, text, maxWidth, maxLines);
   let cursorY = y;
   for (const l of shown) {
     ctx.fillText(l, x, cursorY);
@@ -305,7 +310,7 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   // supaya dua-duanya sama-sama menonjol tapi nama tetap yang terbesar).
   // ---------------------------------------------------------------------
   const identityY = headerH + 40;
-  const medalR = 64;
+  const medalR = 78;
   const medalCx = MARGIN + medalR;
   const medalCy = identityY + medalR;
 
@@ -342,18 +347,21 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   const idTextW = MARGIN + fullW - idTextX;
   ctx.font = `700 22px ${FONT_MONO}`;
   ctx.fillStyle = TEAL_DEEP;
-  ctx.fillText("PESERTA", idTextX, medalCy - 20);
+  ctx.fillText("Mantap pisannn...", idTextX, medalCy - 20);
   ctx.font = `700 44px ${FONT_MONO}`;
   ctx.fillStyle = NAVY;
   ctx.fillText(truncateToWidth(ctx, data.participantName, idTextW), idTextX, medalCy + 24);
 
-  const programY = medalCy + medalR + 44;
+  // PROGRAM + judul campaign sengaja ditempel dekat kotak skor di bawahnya
+  // (gap kecil, bukan nol) -- lihat `boxY` yang memakai jarak pendek dari
+  // identityBottom, bukan lagi jarak lebar seperti sebelumnya.
+  const programY = medalCy + medalR + 40;
   ctx.font = `700 22px ${FONT_MONO}`;
   ctx.fillStyle = TEAL_DEEP;
   ctx.fillText("PROGRAM", MARGIN, programY);
-  ctx.font = `700 38px ${FONT_DISPLAY}`;
+  ctx.font = `700 32px ${FONT_DISPLAY}`;
   ctx.fillStyle = NAVY;
-  const identityBottom = wrapText(ctx, data.campaignTitle, MARGIN, programY + 44, fullW, 46, 2);
+  const identityBottom = wrapText(ctx, data.campaignTitle, MARGIN, programY + 38, fullW, 38, 2);
 
   // ---------------------------------------------------------------------
   // Kotak skor + pencapaian -- disatukan jadi SATU kotak: kolom kiri skor
@@ -362,8 +370,8 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   // paling bawah. Cap teller menumpuk di sudut kanan atas, kali ini lebih
   // masuk ke dalam kotak (bukan cuma menyentuh tepi atas).
   // ---------------------------------------------------------------------
-  const boxY = Math.max(identityBottom, medalCy + medalR) + 36;
-  const boxH = 350;
+  const boxY = Math.max(identityBottom, medalCy + medalR) + 16;
+  const boxH = 460;
   ctx.save();
   cardShadow(ctx);
   ctx.fillStyle = "#FFFFFF";
@@ -393,11 +401,17 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   ctx.fillStyle = GRAY;
   ctx.fillText(`/ ${data.maxScore}`, MARGIN + 24 + scoreW + 12, boxY + 190);
 
+  // Kolom kanan (quest & badge) diberi top margin ekstra supaya turun
+  // sedikit, sejajar dengan tepi atas angka skor besar di kolom kiri
+  // (bukan lagi mulai dari tepi paling atas kotak).
+  const statsTopY = boxY + 90;
+  const STAT_ROW_H = 118;
+
   ctx.strokeStyle = LINE_FAINT;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(MARGIN + leftColW, boxY + 30);
-  ctx.lineTo(MARGIN + leftColW, boxY + 218);
+  ctx.lineTo(MARGIN + leftColW, statsTopY + STAT_ROW_H * 2 - 20);
   ctx.stroke();
 
   interface StatEntry {
@@ -410,34 +424,35 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
     { icon: "✅", iconBg: "#E3F5F3", value: `${data.questCount}`, label: "QUEST SELESAI" },
     { icon: "🏅", iconBg: "#FCEFD9", value: `${data.badgeTitles.length}`, label: "BADGE DIRAIH" },
   ];
-  const statRowH = 94;
+  // Label ("QUEST SELESAI"/"BADGE DIRAIH") sengaja dibuat sebesar angkanya
+  // -- ditumpuk di baris kedua (bukan sebaris) supaya muat, dibedakan lewat
+  // warna abu-abu + bobot huruf, bukan lewat ukuran.
   stats.forEach((stat, i) => {
-    const rowCy = boxY + 60 + i * statRowH;
+    const rowTopY = statsTopY + i * STAT_ROW_H;
     if (i > 0) {
       ctx.strokeStyle = LINE_FAINT;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(rightColX, rowCy - statRowH / 2 + 10);
-      ctx.lineTo(rightColX + rightColW, rowCy - statRowH / 2 + 10);
+      ctx.moveTo(rightColX, rowTopY - 24);
+      ctx.lineTo(rightColX + rightColW, rowTopY - 24);
       ctx.stroke();
     }
-    drawIconCircle(ctx, rightColX + 30, rowCy, 28, stat.iconBg, stat.icon, 26);
+    drawIconCircle(ctx, rightColX + 28, rowTopY + 10, 26, stat.iconBg, stat.icon, 24);
     ctx.font = `900 46px ${FONT_DISPLAY}`;
     ctx.fillStyle = NAVY;
-    ctx.fillText(stat.value, rightColX + 74, rowCy + 4);
-    const valueW = ctx.measureText(stat.value).width;
-    ctx.font = `700 16px ${FONT_MONO}`;
+    ctx.fillText(stat.value, rightColX + 68, rowTopY + 24);
+    ctx.font = `700 40px ${FONT_MONO}`;
     ctx.fillStyle = GRAY;
-    ctx.fillText(stat.label, rightColX + 74 + valueW + 14, rowCy + 4);
+    ctx.fillText(stat.label, rightColX, rowTopY + 76);
   });
 
   ctx.font = `600 20px ${FONT_BODY}`;
   ctx.fillStyle = GRAY;
   ctx.textAlign = "center";
-  ctx.fillText(truncateToWidth(ctx, motivationalText(percent), fullW - 80), centerX, boxY + 246);
+  ctx.fillText(truncateToWidth(ctx, motivationalText(percent), fullW - 80), centerX, boxY + 356);
   ctx.textAlign = "left";
 
-  const shelfDividerY = boxY + 272;
+  const shelfDividerY = boxY + 382;
   ctx.strokeStyle = LINE_FAINT;
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -468,12 +483,13 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   }
 
   const shelfCy = shelfDividerY + (boxY + boxH - shelfDividerY) / 2;
-  const pillFont = `700 18px ${FONT_MONO}`;
+  const pillFont = `700 21px ${FONT_MONO}`;
   ctx.font = pillFont;
-  const maxPillTextW = 260;
+  const maxPillTextW = 250;
   const truncatedPills = pillTexts.map((t) => truncateToWidth(ctx, t, maxPillTextW));
   const pillPadX = 20;
   const pillGap = 14;
+  const pillH = 54;
   const pillWidths = truncatedPills.map((t) => ctx.measureText(t).width + pillPadX * 2);
   const totalPillW = pillWidths.reduce((a, b) => a + b, 0) + pillGap * (truncatedPills.length - 1);
   let pillX = centerX - totalPillW / 2;
@@ -482,7 +498,7 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
     const tone = isOverflow ? { bg: "#DCE7DC", fg: GRAY } : pillPalette[i % pillPalette.length];
     const w = pillWidths[i];
     ctx.fillStyle = tone.bg;
-    roundedRect(ctx, pillX, shelfCy - 24, w, 48, 24);
+    roundedRect(ctx, pillX, shelfCy - pillH / 2, w, pillH, pillH / 2);
     ctx.fill();
     ctx.font = pillFont;
     ctx.fillStyle = tone.fg;
@@ -500,7 +516,7 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   // tepi bawah kanvas.
   // ---------------------------------------------------------------------
   const qrSize = 156;
-  const stubH = qrSize + 78;
+  const stubH = qrSize + 100;
   const stubY = HEIGHT - stubH;
 
   ctx.fillStyle = TEAL_DEEP;
@@ -516,24 +532,38 @@ export async function generateShareCardBlob(data: ShareCardData): Promise<Blob> 
   ctx.stroke();
   ctx.restore();
 
-  ctx.font = `900 46px ${FONT_DISPLAY}`;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillText("Yuk ", MARGIN, stubY + 56);
-  const yukW = ctx.measureText("Yuk ").width;
-  const hlText = "main juga";
-  const hlW = ctx.measureText(hlText).width;
-  ctx.fillStyle = GOLD;
-  ctx.fillText(hlText, MARGIN + yukW, stubY + 56);
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillText("!", MARGIN + yukW + hlW, stubY + 56);
+  // Ajakan main + URL disatukan jadi satu blok dan ditengahkan vertikal di
+  // dalam kupon (bukan lagi ditambatkan dari atas) -- baris credit di
+  // paling bawah tetap punya jatah tempatnya sendiri, tidak ikut ditengahkan.
+  const footerTextW = WIDTH - MARGIN - qrSize - 40 - MARGIN;
+  const inviteFont = `900 34px ${FONT_DISPLAY}`;
+  ctx.font = inviteFont;
+  const inviteLines = computeWrappedLines(ctx, "Yuk ikutan main biar makin cageur rekeningna!", footerTextW, 2);
+  const inviteLineH = 42;
+  const urlFont = `700 26px ${FONT_MONO}`;
+  const urlLineH = 34;
+  const blockGap = 16;
+  const blockH = inviteLines.length * inviteLineH + blockGap + urlLineH;
+  const creditReserve = 60;
+  const zoneTop = stubY + 6;
+  const zoneBottom = stubY + stubH - creditReserve;
+  const blockTop = zoneTop + Math.max(0, (zoneBottom - zoneTop - blockH) / 2);
 
-  ctx.font = `700 26px ${FONT_MONO}`;
+  let footerCursorY = blockTop;
+  ctx.font = inviteFont;
+  ctx.fillStyle = "#FFFFFF";
+  inviteLines.forEach((line) => {
+    footerCursorY += inviteLineH;
+    ctx.fillText(line, MARGIN, footerCursorY - inviteLineH * 0.25);
+  });
+  footerCursorY += blockGap + urlLineH;
+  ctx.font = urlFont;
   ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.fillText(APP_URL.replace("https://", ""), MARGIN, stubY + 98);
+  ctx.fillText(APP_URL.replace("https://", ""), MARGIN, footerCursorY - urlLineH * 0.25);
 
-  ctx.font = `600 19px ${FONT_BODY}`;
+  ctx.font = `600 24px ${FONT_BODY}`;
   ctx.fillStyle = "rgba(255,255,255,0.65)";
-  ctx.fillText("Bagian dari program CP Budker Kesejahteraan 2026", MARGIN, stubY + stubH - 20);
+  ctx.fillText("Bagian dari program CP Budker Kesejahteraan 2026", MARGIN, stubY + stubH - 22);
 
   const qrX = WIDTH - MARGIN - qrSize;
   const qrY = stubY + (stubH - qrSize) / 2 - 6;
