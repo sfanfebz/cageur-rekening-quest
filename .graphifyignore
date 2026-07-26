@@ -1,0 +1,4 @@
+# PDF di docs/ adalah render langsung dari file .md yang sudah ada di sini
+# (dibuat lewat pandoc) -- konten identik, cuma beda format. Dikecualikan
+# supaya graphify tidak mengekstrak ulang konsep yang sama dua kali.
+docs/*.pdf
