@@ -5,7 +5,16 @@
  * dikonversi ke frekuensi saat mau dibunyikan lewat Web Audio.
  */
 
-export type ScaleName = "ionian" | "dorian" | "phrygian" | "lydian" | "mixolydian" | "aeolian" | "harmonicMinor";
+export type ScaleName =
+  | "ionian"
+  | "dorian"
+  | "phrygian"
+  | "lydian"
+  | "mixolydian"
+  | "aeolian"
+  | "harmonicMinor"
+  | "majorPentatonic"
+  | "minorPentatonic";
 
 const SCALE_INTERVALS: Record<ScaleName, readonly number[]> = {
   ionian: [0, 2, 4, 5, 7, 9, 11],
@@ -15,6 +24,11 @@ const SCALE_INTERVALS: Record<ScaleName, readonly number[]> = {
   mixolydian: [0, 2, 4, 5, 7, 9, 10],
   aeolian: [0, 2, 3, 5, 7, 8, 10],
   harmonicMinor: [0, 2, 3, 5, 7, 8, 11],
+  // Skala 5-nada khas riff game retro/chiptune -- kombinasi manapun dari
+  // nada-nadanya tetap konsonan, jadi aman dipakai dengan sistem chord-tone
+  // yang sama (diatonicTriad/diatonicSeventh) tanpa perlu logika khusus.
+  majorPentatonic: [0, 2, 4, 7, 9],
+  minorPentatonic: [0, 3, 5, 7, 10],
 };
 
 const NOTE_INDEX: Record<string, number> = {
