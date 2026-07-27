@@ -111,6 +111,7 @@ export interface ParticipantSummary {
 // Admin
 // ---------------------------------------------------------------------------
 export interface AdminDashboardStats {
+  activeCampaignCode: string | null;
   activeCampaignTitle: string | null;
   totalParticipants: number;
   completedCount: number;

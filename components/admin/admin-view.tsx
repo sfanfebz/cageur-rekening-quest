@@ -70,9 +70,14 @@ export function AdminView({ stats, participants, campaigns }: AdminViewProps) {
       <div className="grid grid-cols-2 gap-3">
         <Card className="p-4">
           <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Campaign Aktif</p>
-          <p className="mt-1 font-display text-sm font-extrabold leading-tight text-navy-900">
-            {stats.activeCampaignTitle ?? "Belum ada"}
-          </p>
+          {stats.activeCampaignTitle ? (
+            <>
+              <p className="mt-1 text-[11px] font-bold text-teal-600">{stats.activeCampaignCode}</p>
+              <p className="font-display text-sm font-extrabold leading-tight text-navy-900">{stats.activeCampaignTitle}</p>
+            </>
+          ) : (
+            <p className="mt-1 font-display text-sm font-extrabold leading-tight text-navy-900">Belum ada</p>
+          )}
         </Card>
         <Card className="p-4">
           <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Total Pemain Tercatat</p>
@@ -438,6 +443,7 @@ function SwitchCampaignModal({
                   }`}
                 >
                   <div>
+                    <p className="text-[11px] font-bold text-teal-600">{c.campaignCode}</p>
                     <p className="text-sm font-bold text-navy-900">{c.title}</p>
                     <p className="text-xs text-gray-500">
                       {CAMPAIGN_STATUS_LABEL[c.status] ?? c.status} · {c.questCount} quest

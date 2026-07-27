@@ -683,6 +683,7 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
   }
 
   return {
+    activeCampaignCode: activeCampaign?.campaignCode ?? null,
     activeCampaignTitle: activeCampaign?.title ?? null,
     totalParticipants: totalParticipants ?? 0,
     completedCount,
@@ -752,7 +753,6 @@ export async function getCampaignsForAdminSwitch(): Promise<AdminCampaignOption[
     .select("id, campaign_code, title, status, campaign_quests(count)")
     .in("status", ["active", "upcoming", "archived"]);
   if (error || !data) return [];
-  const statusOrder: Record<string, number> = { active: 0, upcoming: 1, archived: 2 };
   return data
     .map((row: any) => ({
       id: row.id,
@@ -761,7 +761,7 @@ export async function getCampaignsForAdminSwitch(): Promise<AdminCampaignOption[
       status: row.status,
       questCount: row.campaign_quests?.[0]?.count ?? 0,
     }))
-    .sort((a: AdminCampaignOption, b: AdminCampaignOption) => statusOrder[a.status] - statusOrder[b.status] || a.title.localeCompare(b.title));
+    .sort((a: AdminCampaignOption, b: AdminCampaignOption) => a.campaignCode.localeCompare(b.campaignCode));
 }
 
 /**
