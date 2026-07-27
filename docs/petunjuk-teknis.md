@@ -1,9 +1,12 @@
 # Petunjuk Teknis — Pengelolaan Cageur Rekening Quest
 
 Panduan operasional harian untuk mengelola campaign, quest, dan data peserta.
-Tidak ada admin panel di aplikasi ini — semua pengelolaan dilakukan lewat
-**Supabase SQL Editor** (script siap pakai di `supabase/scripts/`) atau
-**Table Editor** untuk pengecekan cepat.
+Sebagian operasi paling umum (reset progres pemain, ganti campaign aktif,
+lihat klasemen lengkap) sekarang bisa dilakukan lewat **panel admin di
+aplikasi** (`/admin`, digerbangi passcode `ADMIN_PASSCODE` — lihat §6).
+Untuk operasi yang belum ada tombolnya (tambah campaign/quest baru, ubah
+`config_json`, dsb), tetap lewat **Supabase SQL Editor** (script siap pakai
+di `supabase/scripts/`) atau **Table Editor** untuk pengecekan cepat.
 
 Dokumen terkait: `docs/full-documentation.md` (arsitektur & cara kerja
 sistem), `docs/deployment.md` (setup awal Vercel + Supabase),
@@ -89,12 +92,14 @@ komentar di scriptnya untuk detail dampaknya.
 |---|---|
 | Lihat semua peserta + progres + jumlah badge | `01-list-participants-progress.sql` |
 | Reset progres 1 peserta untuk 1 campaign | `05-reset-user-progress.sql` |
+| Reset progres 1 peserta untuk SEMUA campaign | `09-reset-participant-all-progress.sql` (setara tombol "Reset Progress Pemain Tertentu" di panel admin) |
+| Reset progres SEMUA peserta | `10-reset-all-participants-progress.sql` (setara tombol "Reset Progress Semua Pemain" di panel admin) |
 
 Reset progres **menghapus** baris `participant_quest_progress` &
-`participant_campaign_progress` peserta itu untuk campaign yang dipilih —
+`participant_campaign_progress` peserta (atau semua peserta) yang dipilih —
 aplikasi otomatis membuat baris baru begitu peserta itu membuka Game Hub
-lagi, jadi tidak perlu insert manual susulan. Peserta lain / campaign lain
-tidak terpengaruh.
+lagi, jadi tidak perlu insert manual susulan. Data identitas (nama/NIP)
+tidak pernah ikut terhapus oleh operasi ini.
 
 ## 4. Klasemen
 
@@ -160,3 +165,29 @@ untuk `unlock_rule: 'sequential'`) — boleh ada celah angka (mis. 10, 20, 30)
 kalau mau menyisipkan quest baru di tengah tanpa perlu menomori ulang semua
 quest yang sudah ada. Cek urutan yang sudah kepakai dulu lewat
 `07-list-campaign-quests.sql` sebelum menentukan `order_index` quest baru.
+
+## 6. Panel Admin (`/admin`)
+
+Ikon gembok 🔒 di pojok kanan atas header (semua halaman) membuka `/admin`.
+Digerbangi passcode statis dari environment variable `ADMIN_PASSCODE` (lihat
+`docs/deployment.md` §2) — beda dari `LEADERBOARD_PASSCODE` yang dipakai
+peserta untuk buka Klasemen Lengkap. Sesi admin tersimpan di cookie selama
+12 jam (lebih pendek dari sesi pemain) lalu perlu login ulang.
+
+Dashboard ringkas di bagian atas menampilkan: judul campaign aktif, total
+peserta tercatat, jumlah peserta yang sudah menyelesaikan campaign aktif,
+dan rata-rata skor (dalam persen) peserta yang sudah selesai.
+
+Empat aksi tersedia:
+
+| Tombol | Yang terjadi | Setara script manual |
+|---|---|---|
+| Reset Progress Semua Pemain | Hapus progres SEMUA peserta di SEMUA campaign (identitas tidak terhapus) | `10-reset-all-participants-progress.sql` |
+| Reset Progress Pemain Tertentu | Pilih 1 peserta dari dropdown, lihat ringkasan riwayatnya, lalu reset progresnya di SEMUA campaign | `09-reset-participant-all-progress.sql` |
+| Ganti Campaign Aktif | Pilih campaign berstatus "Segera Hadir" untuk diaktifkan; campaign aktif lama otomatis diarsipkan | `04-update-campaign-status.sql` Skenario B |
+| Lihat Klasemen Lengkap | Membuka `/klasemen` — mekanisme & passcode-nya sama seperti yang dipakai peserta | — |
+
+Setiap aksi yang mengubah/menghapus data selalu ada langkah konfirmasi
+sebelum benar-benar dieksekusi. Sama seperti operasi manual lewat SQL
+Editor, tidak ada undo — pertimbangkan Point-in-Time Recovery checkpoint
+(lihat §5) sebelum reset massal di produksi.

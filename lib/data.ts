@@ -2,6 +2,10 @@ import "server-only";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { validateQuestConfig } from "@/lib/quest-config-schemas";
 import type {
+  AdminCampaignOption,
+  AdminDashboardStats,
+  AdminParticipantHistoryRow,
+  AdminParticipantOption,
   Campaign,
   CampaignProgressSummary,
   CampaignQuestLink,
@@ -649,4 +653,134 @@ export async function recomputeAndSaveCampaignProgress(participantId: string, ca
     .eq("id", existing.id);
 
   return summary;
+}
+
+// ---------------------------------------------------------------------------
+// Admin (panel /admin -- gerbang passcode statis, lihat lib/admin-session.ts)
+// ---------------------------------------------------------------------------
+export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
+  const supabase = getSupabaseAdmin();
+  const activeCampaign = await getActiveCampaign();
+
+  const { count: totalParticipants } = await supabase.from("participants").select("id", { count: "exact", head: true });
+
+  let completedCount = 0;
+  let averageScorePercent: number | null = null;
+  if (activeCampaign) {
+    const { data: completedRows } = await supabase
+      .from("participant_campaign_progress")
+      .select("total_score, max_score")
+      .eq("campaign_id", activeCampaign.id)
+      .eq("status", "completed");
+    completedCount = completedRows?.length ?? 0;
+    if (completedRows && completedRows.length > 0) {
+      const percentSum = completedRows.reduce((sum: number, row: any) => {
+        const pct = row.max_score > 0 ? (row.total_score / row.max_score) * 100 : 0;
+        return sum + pct;
+      }, 0);
+      averageScorePercent = Math.round(percentSum / completedRows.length);
+    }
+  }
+
+  return {
+    activeCampaignTitle: activeCampaign?.title ?? null,
+    totalParticipants: totalParticipants ?? 0,
+    completedCount,
+    averageScorePercent,
+  };
+}
+
+export async function getAllParticipantsForAdmin(): Promise<AdminParticipantOption[]> {
+  const { data, error } = await getSupabaseAdmin().from("participants").select("id, full_name, nip").order("full_name", { ascending: true });
+  if (error || !data) return [];
+  return data.map((row: any) => ({ id: row.id, fullName: row.full_name, nip: row.nip }));
+}
+
+export async function getParticipantProgressHistory(participantId: string): Promise<AdminParticipantHistoryRow[]> {
+  const supabase = getSupabaseAdmin();
+  const { data: progressRows, error } = await supabase
+    .from("participant_campaign_progress")
+    .select("campaign_id, status, total_score, max_score, completed_quest_count, completed_at")
+    .eq("participant_id", participantId)
+    .neq("status", "not_started")
+    .order("completed_at", { ascending: false, nullsFirst: false });
+  if (error || !progressRows || progressRows.length === 0) return [];
+
+  const campaignIds = [...new Set(progressRows.map((r: any) => r.campaign_id))];
+  const { data: campaignRows } = await supabase.from("campaigns").select("id, campaign_code, title").in("id", campaignIds);
+  const campaignById = new Map((campaignRows ?? []).map((c: any) => [c.id, c]));
+
+  return progressRows.map((row: any) => {
+    const campaign = campaignById.get(row.campaign_id);
+    return {
+      campaignCode: campaign?.campaign_code ?? "-",
+      campaignTitle: campaign?.title ?? "Campaign tidak dikenal",
+      status: row.status,
+      totalScore: row.total_score,
+      maxScore: row.max_score,
+      completedQuestCount: row.completed_quest_count,
+      completedAt: row.completed_at,
+    };
+  });
+}
+
+/** Reset progres SATU peserta di SEMUA campaign yang pernah diikutinya. Baris identitas (nama/NIP) tidak disentuh. */
+export async function resetParticipantProgress(participantId: string): Promise<{ questRowsDeleted: number; campaignRowsDeleted: number }> {
+  const supabase = getSupabaseAdmin();
+  const { data: deletedQuest } = await supabase.from("participant_quest_progress").delete().eq("participant_id", participantId).select("id");
+  const { data: deletedCampaign } = await supabase
+    .from("participant_campaign_progress")
+    .delete()
+    .eq("participant_id", participantId)
+    .select("id");
+  return { questRowsDeleted: deletedQuest?.length ?? 0, campaignRowsDeleted: deletedCampaign?.length ?? 0 };
+}
+
+/** Reset progres SEMUA peserta di SEMUA campaign. Baris identitas peserta (nama/NIP) tidak dihapus. */
+export async function resetAllParticipantsProgress(): Promise<{ questRowsDeleted: number; campaignRowsDeleted: number }> {
+  const supabase = getSupabaseAdmin();
+  const { data: deletedQuest } = await supabase.from("participant_quest_progress").delete().not("id", "is", null).select("id");
+  const { data: deletedCampaign } = await supabase.from("participant_campaign_progress").delete().not("id", "is", null).select("id");
+  return { questRowsDeleted: deletedQuest?.length ?? 0, campaignRowsDeleted: deletedCampaign?.length ?? 0 };
+}
+
+/** Campaign yang relevan untuk panel "Ganti Campaign Aktif": aktif (info), upcoming (bisa dipilih), archived (info saja). */
+export async function getCampaignsForAdminSwitch(): Promise<AdminCampaignOption[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("campaigns")
+    .select("id, campaign_code, title, status, campaign_quests(count)")
+    .in("status", ["active", "upcoming", "archived"]);
+  if (error || !data) return [];
+  const statusOrder: Record<string, number> = { active: 0, upcoming: 1, archived: 2 };
+  return data
+    .map((row: any) => ({
+      id: row.id,
+      campaignCode: row.campaign_code,
+      title: row.title,
+      status: row.status,
+      questCount: row.campaign_quests?.[0]?.count ?? 0,
+    }))
+    .sort((a: AdminCampaignOption, b: AdminCampaignOption) => statusOrder[a.status] - statusOrder[b.status] || a.title.localeCompare(b.title));
+}
+
+/**
+ * Ganti campaign aktif: arsipkan yang lama (kalau ada), aktifkan yang baru.
+ * Meniru logika manual di supabase/scripts/04-update-campaign-status.sql
+ * Skenario B -- dua UPDATE berurutan supaya tidak melanggar unique index
+ * "hanya 1 campaign aktif dalam satu waktu" (campaigns_single_active_idx).
+ */
+export async function setActiveCampaignForAdmin(newCampaignId: string): Promise<Campaign> {
+  const supabase = getSupabaseAdmin();
+  const { data: target } = await supabase.from("campaigns").select("*").eq("id", newCampaignId).maybeSingle();
+  if (!target) throw new Error("Campaign tidak ditemukan.");
+  if (target.status !== "upcoming") throw new Error("Hanya campaign berstatus 'upcoming' yang bisa diaktifkan.");
+
+  const current = await getActiveCampaign();
+  if (current) {
+    await supabase.from("campaigns").update({ status: "archived" }).eq("id", current.id);
+  }
+  const { data: updated, error } = await supabase.from("campaigns").update({ status: "active" }).eq("id", newCampaignId).select("*").single();
+  if (error || !updated) throw new Error("Gagal mengaktifkan campaign baru.");
+  return mapCampaign(updated);
 }
