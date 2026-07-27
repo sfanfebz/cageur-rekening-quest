@@ -1,23 +1,23 @@
--- Cageur Rekening Quest — seed data awal
--- Jalankan setelah supabase/schema.sql. Aman dijalankan ulang (pakai upsert
--- lewat ON CONFLICT), jadi bisa dipakai juga untuk memperbarui campaign/quest
--- awal tanpa duplikasi baris.
-
--- ---------------------------------------------------------------------------
--- Campaign 1 — Cageur Rekening Quest: Cek dan Atur Keuangan
--- ---------------------------------------------------------------------------
-insert into campaigns (campaign_code, title, description, status, start_at)
-values (
-  'CR-C01',
-  'Cageur Rekening Quest — Cek dan Atur Keuangan',
-  'Cek kondisi keuangan, temukan bocor halus, atur budget, dan tahan checkout yang kurang perlu.',
-  'active',
-  now()
-)
-on conflict (campaign_code) do update set
-  title = excluded.title,
-  description = excluded.description,
-  status = excluded.status;
+-- =============================================================================
+-- Cageur Rekening Quest — update seed campaign CR-C01
+-- "Cageur Rekening Quest — Cek dan Atur Keuangan"
+--
+-- CR-C01 sudah ada sejak awal di supabase/seed.sql (status 'active'), file
+-- ini KHUSUS untuk memperbarui isi ke-4 quest-nya (Q001-Q004) tanpa
+-- menyentuh baris campaigns-nya sama sekali -- status/start_at CR-C01
+-- tetap seperti apa adanya di database, tidak ikut di-reset oleh script
+-- ini. Aman dijalankan berkali-kali (upsert lewat ON CONFLICT).
+--
+-- Isi perubahan:
+-- 1. Menegaskan ulang field "emoji" di SETIAP kartu/item pada Q001-Q004 --
+--    berguna kalau database live kamu masih hasil seed versi lama sebelum
+--    emoji dilengkapi (repo saat ini sebenarnya sudah lengkap emoji,
+--    tapi database live bisa saja ketinggalan versi).
+-- 2. Q004 "Checkout Battle" (swipe_cards): label tiap item disempurnakan
+--    jadi frasa yang lebih deskriptif/kontekstual (bukan cuma nama
+--    barang polos), konsisten dengan gaya quest di campaign-campaign
+--    yang lebih baru.
+-- =============================================================================
 
 -- ---------------------------------------------------------------------------
 -- Quest 1 — Dompet Cageur Scanner (tap_select)
@@ -123,6 +123,9 @@ on conflict (quest_code) do update set
 
 -- ---------------------------------------------------------------------------
 -- Quest 4 — Checkout Battle (swipe_cards)
+-- Label tiap item disempurnakan jadi frasa deskriptif/kontekstual (bukan
+-- cuma nama barang polos) supaya lebih jelas ALASAN di balik kategorinya,
+-- konsisten dengan gaya quest campaign yang lebih baru.
 -- ---------------------------------------------------------------------------
 insert into quests (quest_code, title, subtitle, quest_type, status, max_score, version, allow_replay, config_json)
 values (
@@ -159,7 +162,8 @@ on conflict (quest_code) do update set
   status = excluded.status, max_score = excluded.max_score, config_json = excluded.config_json;
 
 -- ---------------------------------------------------------------------------
--- Hubungkan quest ke campaign CR-C01, urut sequential
+-- Hubungkan quest ke campaign CR-C01, urut sequential (menegaskan ulang --
+-- keterkaitan ini sudah ada sejak seed.sql awal, upsert di sini aman).
 -- ---------------------------------------------------------------------------
 insert into campaign_quests (campaign_id, quest_id, order_index, is_required, unlock_rule)
 select c.id, q.id, data.order_index, true, 'sequential'
@@ -171,19 +175,3 @@ on conflict (campaign_id, quest_id) do update set
   order_index = excluded.order_index,
   is_required = excluded.is_required,
   unlock_rule = excluded.unlock_rule;
-
--- ---------------------------------------------------------------------------
--- Contoh campaign berikutnya berstatus upcoming, ditampilkan di tab
--- "Segera Hadir" pada Game Hub. Tidak punya quest sehingga tidak dapat
--- dimainkan. Hapus atau ubah statusnya lewat Table Editor kapan pun.
--- ---------------------------------------------------------------------------
-insert into campaigns (campaign_code, title, description, status, start_at)
-values (
-  'CR-C02',
-  'Cageur Rekening Quest — Prioritas Belanja & Atur Anggaran',
-  'Rangkaian misi lanjutan seputar membedakan kebutuhan/keinginan/prioritas sebelum belanja, lalu menyusun anggaran bulanan yang realistis. Segera hadir.',
-  'upcoming',
-  null
-)
-on conflict (campaign_code) do update set
-  title = excluded.title, description = excluded.description, status = excluded.status;
