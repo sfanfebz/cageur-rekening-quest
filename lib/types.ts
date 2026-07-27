@@ -106,3 +106,38 @@ export interface ParticipantSummary {
   totalQuestsCompleted: number;
   totalBadges: number;
 }
+
+// ---------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------
+export interface AdminDashboardStats {
+  activeCampaignCode: string | null;
+  activeCampaignTitle: string | null;
+  totalParticipants: number;
+  completedCount: number;
+  averageScorePercent: number | null;
+}
+
+export interface AdminParticipantOption {
+  id: string;
+  fullName: string;
+  nip: string;
+}
+
+export interface AdminParticipantHistoryRow {
+  campaignCode: string;
+  campaignTitle: string;
+  status: CampaignProgressStatus;
+  totalScore: number;
+  maxScore: number;
+  completedQuestCount: number;
+  completedAt: string | null;
+}
+
+export interface AdminCampaignOption {
+  id: string;
+  campaignCode: string;
+  title: string;
+  status: CampaignStatus;
+  questCount: number;
+}

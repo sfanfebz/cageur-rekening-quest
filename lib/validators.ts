@@ -34,3 +34,11 @@ export const questCompleteSchema = z.object({
   questCode: z.string().min(1),
   answer: z.unknown(),
 });
+
+export const adminParticipantIdSchema = z.object({
+  participantId: z.string().uuid(),
+});
+
+export const adminSwitchCampaignSchema = z.object({
+  campaignId: z.string().uuid(),
+});

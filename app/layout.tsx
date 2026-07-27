@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
 import { Baloo_2, Nunito } from "next/font/google";
 import { BudayaKerjaLogo } from "@/components/ui/logo";
 import { MuteToggle } from "@/components/ui/mute-toggle";
 import { MusicMuteToggle } from "@/components/ui/music-mute-toggle";
+import { IconGembok } from "@/components/ui/icons";
 import "@/app/globals.css";
 
 const baloo = Baloo_2({
@@ -44,6 +46,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex items-center gap-1.5">
               <MusicMuteToggle />
               <MuteToggle />
+              <Link
+                href="/admin"
+                aria-label="Admin"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-navy-700 transition hover:bg-teal-50 hover:text-teal-600 active:scale-95"
+              >
+                <IconGembok size={18} />
+              </Link>
             </div>
           </header>
           <main className="flex-1 px-4 pb-10 pt-4">{children}</main>

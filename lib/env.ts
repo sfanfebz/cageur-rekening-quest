@@ -21,4 +21,7 @@ export const env = {
   get sessionSecret() {
     return process.env.SESSION_SECRET || "cageur-rekening-quest-dev-secret";
   },
+  get adminPasscode() {
+    return process.env.ADMIN_PASSCODE || "CageurAdmin2026";
+  },
 };
